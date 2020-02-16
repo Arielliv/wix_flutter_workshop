@@ -1142,7 +1142,364 @@ now you have everything to login or sign in!
 
 ## home screen
 
-with this setup we ccan finnlly start codeing :raised_hands: 
+lets start creating our home screen :raised_hands:
+
+1. we need to create 2 new providers : `item` and `items`
+2. we need to refactor our `items_overview_screen`
+3. we need to create new widget `items_grid`
+
+- under providers directory , cereate `items.dart` and `item.dart` 
+- `item` provider will represent our item whom will be save in our server  
+it will have those properties:  
+    ```
+    final String id;
+    final String title;
+    final String description;
+    final double price;
+    final String imagePath;
+    bool isFavorite;
+    ```
+    it will be `class` that uses `ChangeNotifier` mixin 
+    in dart you do it with `with` keyword - 
+    
+    ```
+    class Item with ChangeNotifier
+    ```
+
+<details>
+    <summary>item.dart</summary>
+
+    import 'package:flutter/foundation.dart';
+    import 'package:flutter/material.dart';
+
+    class Item with ChangeNotifier {
+    final String id;
+    final String title;
+    final String description;
+    final double price;
+    final String imagePath;
+    bool isFavorite;
+
+    Item({
+        @required this.id,
+        @required this.title,
+        @required this.description,
+        @required this.price,
+        this.imagePath,
+        this.isFavorite = false,
+    });
+    }
+
+</details>
+
+- `items` provider will hold all of our `crud` logic against the server
+- we will use `auth` and `user` that we got when we loged in , so we will have permissions over the items
+- copy the code from here :arrow_down:
+
+<details>
+    <summary>items.dart</summary>
+
+    import 'dart:convert';
+    import 'package:flutter/widgets.dart';
+    import 'package:http/http.dart' as http;
+    import '../providers/item.dart';
+
+    class Items with ChangeNotifier {
+    final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
+    List<Item> _items = [];
+
+    final String authToken;
+    final String userId;
+
+    Items(this.authToken, this.userId, this._items);
+
+    List<Item> get items {
+        return [..._items];
+    }
+
+    Item findById(String id) {
+        return _items.firstWhere((item) => item.id == id);
+    }
+
+    Future<void> fetchAndSetItems([bool filterByUser = false]) async {
+        final filterUrl =
+            filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+        var url = '$baseUrl/items.json?auth=$authToken&$filterUrl';
+        print(authToken);
+        try {
+        final response = await http.get(url);
+        final extractedData = json.decode(response.body) as Map<String, dynamic>;
+        if (extractedData == null) {
+            return;
+        } else {
+            final List<Item> loadedItems = [];
+            extractedData.forEach((itemId, itemData) {
+            loadedItems.add(Item(
+                id: itemId,
+                title: itemData['title'],
+                description: itemData['description'],
+                price: itemData['price'],
+                isFavorite: false,
+                imagePath: itemData['imagePath'],
+            ));
+            });
+            _items = loadedItems;
+
+            notifyListeners();
+        }
+        } catch (error) {
+        throw error;
+        }
+    }
+    }
+
+</details>
+
+- please aad this lines of code to `main.dart` file inside `providers` array
+    
+    ```
+    ChangeNotifierProxyProvider<Auth, Items>(
+            builder: (ctx, auth, prevpItems) => Items(
+                auth.token,
+                auth.userId,
+                prevpItems == null ? [] : prevpItems.items,
+            ),
+            ),
+    ```
+
+- Lets refactor items_overview_screen :muscle:
+- until now it was just a widget that render loader - now we will make it show items
+
+- becasue we now going to work against the server - we will need to handle `Future` and async code , therefoe lets handle the `init` and `load` stage
+    
+    - create `_isInit` and `_isLoading` in `_ProductsOverviewScreenState` class
+    and add `didChangeDependencies` (Called when a dependency of this State object changes)
+    - this will handle update the screen when we will get the data back from the server
+    - we will call `fetchAndSetItems` there to get the products from the server and when it will finish , we will update the state 
+
+    ```
+    var _isInit = false;
+    var _isLoading = false;
+
+    @override
+    void didChangeDependencies() {
+        if (!_isInit) {
+        _isLoading = true;
+        Provider.of<Items>(context).fetchAndSetItems().then((_) {
+            setState(() {
+            _isLoading = false;
+            });
+        });
+        }
+
+        _isInit = true;
+        super.didChangeDependencies();
+    }
+    ```
+
+    - now lets refactor `body` in `Scaffold` widget :
+    ```
+    body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ItemsGrid(),
+    ```
+
+    - now we need to create `ItemsGrid`
+
+<details>
+    <summary>items_overview_screen.dart</summary>
+
+    class ItemsOverviewScreen extends StatefulWidget {
+    @override
+    _ProductsOverviewScreenState createState() => _ProductsOverviewScreenState();
+    }
+
+    class _ProductsOverviewScreenState extends State<ItemsOverviewScreen> {
+    var _isInit = false;
+    var _isLoading = false;
+
+    @override
+    void didChangeDependencies() {
+        if (!_isInit) {
+        _isLoading = true;
+        Provider.of<Items>(context).fetchAndSetItems().then((_) {
+            setState(() {
+            _isLoading = false;
+            });
+        });
+        }
+
+        _isInit = true;
+        super.didChangeDependencies();
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+        appBar: AppBar(
+            title: Text('Flutter Workshop'),
+        ),
+        body: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+                )
+            : ItemsGrid(),
+        );
+    }
+    }
+</details>
+
+- `ItemsGrid`
+    - first lets get our items from the provider contex
+
+    ```
+    final items = Provider.of<Items>(context).items;
+    ```
+
+    - lets create a file `items_grid.dart` and `StatelessWidget` and call it `ItemsGrid` 
+    - we will use another `Flutter` layout widget - `GridView` (A scrollable, 2D array of widgets)
+    - `GridView` will take care of the layout for us
+    - we will write it in builder way : 
+        - `itemCount` - we will pass how many items there are
+        - `gridDelegate` (produce an arbitrary 2D arrangement of children) - we will pass `SliverGridDelegateWithFixedCrossAxisCount`
+        - `itemBuilder` - we need to loop over items and return `ItemWidget`
+
+        ```
+        GridView.builder(
+            padding: const EdgeInsets.all(10.0),
+            itemCount: items.length,
+            itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
+                value: items[i],
+                child: Container(
+                child: ItemWidget(),
+                ),
+            ),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 3 / 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+            ),
+        ```
+
+<details>
+<summary>items_grid.dart</summary>
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+    import '../widgets/item_widget.dart';
+
+    import '../providers/items.dart';
+
+    class ItemsGrid extends StatelessWidget {
+    @override
+    Widget build(BuildContext context) {
+        final items = Provider.of<Items>(context).items;
+        
+        return GridView.builder(
+        padding: const EdgeInsets.all(10.0),
+        itemCount: items.length,
+        itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
+            value: items[i],
+            child: Container(
+            child: ItemWidget(),
+            ),
+        ),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 3 / 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+        ),
+        );
+    }
+    }
+
+</details>
+
+- `ItemWidget`
+    - lets crate `item_widget.dart` and `StatelessWidget` named `ItemWidget`
+    - we will take our item from `Item` provider
+
+    ```
+    final item = Provider.of<Item>(context, listen: false);
+    ```
+    - we will use now `ClipRRect` another Flutter build in widget (clips its child using a rounded rectangle, similar to `ClipOval`and `ClipPath`)
+
+        - we will pass it borderRadius of 10
+        - and his child will be `GridTile` which is grid tile part of `GridView` list, (we are using `GridView` in our `ItemsWidget`)
+        - now we will cover the child with `Hero` widget, so we will have a nice hero animation (A widget that marks its child as being a candidate for hero animations)
+
+            - we need to add `tag` propety so it will know which widget should get the hero animation, you need to add identical tag for both of them (widget where the animation trrigers and the widget where is should haapen)
+
+            - the child will be `FadeInImage` widget(An image that shows a placeholder image while the target image is loading, then fades in the new image when it loads)
+            - the palce order will be from our assets images 
+                ```
+                AssetImage('assets/images/wix-logo.jpg')```
+
+            - image propetry : will use `FileImage` widget that will laod the image 
+
+                ```
+                (File(item.imagePath))
+                ```
+            - and fit propetry `BoxFit.cover`
+
+        - we will add fotter and it will be `GridTileBar`
+
+            ```
+            backgroundColor: Colors.black87,
+                title: Text(
+                    item.title,
+                    textAlign: TextAlign.center,
+                ),
+            ```
+
+
+
+<details>
+    <summary>item_widget.dart</summary>
+    import 'dart:io';
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+    import '../providers/item.dart';
+
+    class ItemWidget extends StatelessWidget {
+    @override
+    Widget build(BuildContext context) {
+        final item = Provider.of<Item>(context, listen: false);
+
+        return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: GridTile(
+            child: GestureDetector(
+            onTap: () {
+            },
+            child: Hero(
+                tag: item.id,
+                child: FadeInImage(
+                placeholder: AssetImage('assets/images/wix-logo.jpg'),
+                image: FileImage(File(item.imagePath)),
+                fit: BoxFit.cover,
+                ),
+            ),
+            ),
+            footer: GridTileBar(
+            backgroundColor: Colors.black87,
+            title: Text(
+                item.title,
+                textAlign: TextAlign.center,
+            ),
+            ),
+        ),
+        );
+    }
+    }
+
+</details>
+
+with this setup we can finnlly start codeing :raised_hands: 
 
 this will be helpful later.
 ## Getting Started

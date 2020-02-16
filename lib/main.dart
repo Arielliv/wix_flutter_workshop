@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wix_flutter_workshop/screens/Items_overview_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:wix_flutter_workshop/providers/auth.dart';
-import 'package:wix_flutter_workshop/screens/auth_screen.dart';
-import 'package:wix_flutter_workshop/screens/splash_screen.dart';
+import './screens/Items_overview_screen.dart';
+import './providers/auth.dart';
+import './screens/auth_screen.dart';
+import './screens/splash_screen.dart';
+import './providers/items.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,6 +16,13 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(
           value: Auth(),
+        ),
+        ChangeNotifierProxyProvider<Auth, Items>(
+          builder: (ctx, auth, prevpItems) => Items(
+            auth.token,
+            auth.userId,
+            prevpItems == null ? [] : prevpItems.items,
+          ),
         ),
       ],
       child: Consumer<Auth>(

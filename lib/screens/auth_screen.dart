@@ -28,7 +28,20 @@ class AuthScreen extends StatelessWidget {
                 children: <Widget>[
                   Flexible(
                     child: Container(
-                      
+                      margin: EdgeInsets.only(bottom: 20.0),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white70,
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 8,
+                            color: Colors.black26,
+                            offset: Offset(0, 2),
+                          )
+                        ],
+                      ),
                       child: Text(
                         'Workshop',
                         style: TextStyle(
