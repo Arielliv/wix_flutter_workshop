@@ -1,4 +1,4 @@
-package com.example.wix_flutter_workshop
+package com.example.workshop1
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

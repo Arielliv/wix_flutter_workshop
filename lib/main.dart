@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wix_flutter_workshop/screens/item_detail_screen.dart';
 import './screens/Items_overview_screen.dart';
 import './providers/auth.dart';
 import './screens/auth_screen.dart';
@@ -42,6 +43,9 @@ class MyApp extends StatelessWidget {
                           ? SplashScreen()
                           : AuthScreen(),
                 ),
+                routes: {
+            ItemDetailScreen.routeName: (ctx) => ItemDetailScreen(),
+          },
         ),
       ),
     );

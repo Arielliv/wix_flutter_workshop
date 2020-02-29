@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -6,7 +8,7 @@ class Item with ChangeNotifier {
   final String title;
   final String description;
   final double price;
-  final String imagePath;
+  final File image;
   bool isFavorite;
 
   Item({
@@ -14,7 +16,7 @@ class Item with ChangeNotifier {
     @required this.title,
     @required this.description,
     @required this.price,
-    this.imagePath,
+    this.image,
     this.isFavorite = false,
   });
 }

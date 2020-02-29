@@ -1149,22 +1149,45 @@ lets start creating our home screen :raised_hands:
 3. we need to create new widget `items_grid`
 
 - under providers directory , cereate `items.dart` and `item.dart` 
+
 - `item` provider will represent our item whom will be save in our server  
-it will have those properties:  
-    ```
-    final String id;
-    final String title;
-    final String description;
-    final double price;
-    final String imagePath;
-    bool isFavorite;
-    ```
-    it will be `class` that uses `ChangeNotifier` mixin 
+it will be `class` that uses `ChangeNotifier` mixin 
     in dart you do it with `with` keyword - 
     
     ```
     class Item with ChangeNotifier
     ```
+
+    it will have those properties:  
+    ```
+    final String id;
+    final String title;
+    final String description;
+    final double price;
+    final File image;
+    bool isFavorite;
+    ```
+    
+    make sure to import `foundation.dart` and import `material.dart` from flutter
+
+    ```
+    import 'package:flutter/foundation.dart';
+    import 'package:flutter/material.dart';
+    import 'dart:io';
+    ```
+
+    - we will need to create a constractor function
+    
+    ```
+    Item({
+        @required this.id,
+        @required this.title,
+        @required this.description,
+        @required this.price,
+        this.imagePath,
+        this.isFavorite = false,
+    });
+  ```
 
 <details>
     <summary>item.dart</summary>
@@ -1177,7 +1200,7 @@ it will have those properties:
     final String title;
     final String description;
     final double price;
-    final String imagePath;
+    final File image;
     bool isFavorite;
 
     Item({
@@ -1185,7 +1208,7 @@ it will have those properties:
         @required this.title,
         @required this.description,
         @required this.price,
-        this.imagePath,
+        this.image,
         this.isFavorite = false,
     });
     }
@@ -1240,7 +1263,7 @@ it will have those properties:
                 description: itemData['description'],
                 price: itemData['price'],
                 isFavorite: false,
-                imagePath: itemData['imagePath'],
+                image: itemData['image'],
             ));
             });
             _items = loadedItems;
@@ -1255,7 +1278,7 @@ it will have those properties:
 
 </details>
 
-- please aad this lines of code to `main.dart` file inside `providers` array
+- please add this lines of code to `main.dart` file inside `providers` array
     
     ```
     ChangeNotifierProxyProvider<Auth, Items>(
@@ -1266,15 +1289,19 @@ it will have those properties:
             ),
             ),
     ```
+    - and import import `items.dart`
 
 - Lets refactor items_overview_screen :muscle:
-- until now it was just a widget that render loader - now we will make it show items
+
+    until now it was just a widget that render loader,now we will make it show our items
 
 - becasue we now going to work against the server - we will need to handle `Future` and async code , therefoe lets handle the `init` and `load` stage
     
-    - create `_isInit` and `_isLoading` in `_ProductsOverviewScreenState` class
-    and add `didChangeDependencies` (Called when a dependency of this State object changes)
-    - this will handle update the screen when we will get the data back from the server
+    - create `_isInit` and `_isLoading` vars in `_ProductsOverviewScreenState` class , both should be in initial as false
+    - add `didChangeDependencies` (Called when a dependency of this State object changes)
+    
+        this will handle update of screen when we will get the data back from the server
+     
     - we will call `fetchAndSetItems` there to get the products from the server and when it will finish , we will update the state 
 
     ```
@@ -1306,7 +1333,7 @@ it will have those properties:
           : ItemsGrid(),
     ```
 
-    - now we need to create `ItemsGrid`
+    - we get error beacuse `ItemsGrid` is not exist, we need to create it
 
 <details>
     <summary>items_overview_screen.dart</summary>
@@ -1352,13 +1379,13 @@ it will have those properties:
 </details>
 
 - `ItemsGrid`
-    - first lets get our items from the provider contex
+    - lets create a file `items_grid.dart` and `StatelessWidget` and call it `ItemsGrid` and import `material.dart`
+    - inside build function ,lets get our items from the provider contex
 
     ```
     final items = Provider.of<Items>(context).items;
     ```
 
-    - lets create a file `items_grid.dart` and `StatelessWidget` and call it `ItemsGrid` 
     - we will use another `Flutter` layout widget - `GridView` (A scrollable, 2D array of widgets)
     - `GridView` will take care of the layout for us
     - we will write it in builder way : 
@@ -1382,7 +1409,9 @@ it will have those properties:
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
             ),
+        );
         ```
+- we get error beacuse `ItemWidget` is not exist, we need to create it
 
 <details>
 <summary>items_grid.dart</summary>
@@ -1420,8 +1449,13 @@ it will have those properties:
 </details>
 
 - `ItemWidget`
-    - lets crate `item_widget.dart` and `StatelessWidget` named `ItemWidget`
-    - we will take our item from `Item` provider
+    - lets crate `item_widget.dart` and `StatelessWidget` named `ItemWidget` and import `material.dart`
+    - we will need to use `Assets` this time - lets add import in `pubspec.yaml` file 
+    ```
+    assets:
+     - assets/images/wix-logo.jpg
+   ```
+    - inside build function ,we will take our item from `Item` provider
 
     ```
     final item = Provider.of<Item>(context, listen: false);
@@ -1439,10 +1473,18 @@ it will have those properties:
                 ```
                 AssetImage('assets/images/wix-logo.jpg')```
 
-            - image propetry : will use `FileImage` widget that will laod the image 
+            - image propetry : will use `FileImage` widget that will laod the image with `File` widget from `dart:io` - im port it 
 
                 ```
-                (File(item.imagePath))
+                import 'dart:io';
+                .
+                .
+                .
+                .
+                FileImage(item.image)
+                .
+                .
+                .
                 ```
             - and fit propetry `BoxFit.cover`
 
@@ -1456,7 +1498,7 @@ it will have those properties:
                 ),
             ```
 
-
+        now we can import `ItemWidget` in `ItemsGrid` 
 
 <details>
     <summary>item_widget.dart</summary>
@@ -1480,7 +1522,7 @@ it will have those properties:
                 tag: item.id,
                 child: FadeInImage(
                 placeholder: AssetImage('assets/images/wix-logo.jpg'),
-                image: FileImage(File(item.imagePath)),
+                image: FileImage(item.image),
                 fit: BoxFit.cover,
                 ),
             ),
@@ -1499,6 +1541,194 @@ it will have those properties:
 
 </details>
 
+## item overiew screen
+
+ - lets cretae new file `item_detail_screen.dart`
+ - this widget screen will show more dutails about the item
+    - bigger image
+    - details about the item
+
+first lets create `StatelessWidget` with name `ItemDetailScreen`
+
+- add route to the file , that way we could approach it
+
+```
+    static const routeName = '/item-detail';
+```
+
+- we will need to get the item id somehow so we will be able to show the right item data - so we will use `context`
+
+    - when you navigate from `ItemOverviewScreen` (acutally `ItemWidget`) by clicking on the item , you can pass `arguments` so in `ItemDetailScreen` we will be able to use them. we will pass the item Id that way.
+
+lets add to `onTap` function in `ItemWidget` which will pass `argumants` - `item.id` inside:
+
+```
+    Navigator.of(context).pushNamed(
+              ItemDetailScreen.routeName,
+              arguments: item.id,
+            );
+```
+
+ - and now, we will add to `ItemDetailScreen` a call to the `ModalRoute` , so it would be able to get the `itemId` from the arguments, then we'll use it to get the right item from `Items Provider`
+
+ ```
+ final itemId = ModalRoute.of(context).settings.arguments as String;
+ final loadedItem = Provider.of<Items>(
+      context,
+      listen: false,
+    ).findById(itemId);
+
+ ``` 
+after getting the in fostructre ready, lets add our screen detail ui 
+
+- we will return `Scaffold`
+- it will contain our second part of the `Hero` animation 
+- we will have a new widget -  `CustomScrollView` (A ScrollView that creates custom scroll effects using slivers) for a cool scroll
+    - it will be divided for two parts :
+        - slivers - inside it will contain `SliverAppBar` (A material design app bar that integrates with a CustomScrollView). which be containing our `Hero` widget as `background`, with title of the item
+        - SliverList - which will contin more details about the item 
+
+<details>
+    <summary>UI</summary>
+
+    return Scaffold(
+        body: CustomScrollView(
+            slivers: <Widget>[
+            SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                title: Text(loadedItem.title),
+                background: Hero(
+                    tag: loadedItem.id,
+                    child: Image.file(
+                    File(
+                        loadedItem.image.path,
+                    ),
+                    fit: BoxFit.cover,
+                    ),
+                ),
+                ),
+            ),
+            SliverList(
+                delegate: SliverChildListDelegate(
+                [
+                    SizedBox(
+                    height: 10,
+                    ),
+                    Text(
+                    '\$${loadedItem.price}',
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                    height: 10,
+                    ),
+                    Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    width: double.infinity,
+                    child: Text(
+                        loadedItem.description,
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                    ),
+                    ),
+                    SizedBox(
+                    height: 800,
+                    ),
+                ],
+                ),
+            ),
+            ],
+        ),
+        );
+</details>
+
+ thats it , now it suppose to work - try by clicking on the item!
+
+ <details>
+ <summary>item_detail_screen.dart</summary>
+ import 'dart:io';
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+
+    import '../providers/items.dart';
+
+    class ItemDetailScreen extends StatelessWidget {
+    static const routeName = '/item-detail';
+
+    @override
+    Widget build(BuildContext context) {
+        final itemId = ModalRoute.of(context).settings.arguments as String;
+        final loadedItem = Provider.of<Items>(
+        context,
+        listen: false,
+        ).findById(itemId);
+
+        return Scaffold(
+        body: CustomScrollView(
+            slivers: <Widget>[
+            SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                title: Text(loadedItem.title),
+                background: Hero(
+                    tag: loadedItem.id,
+                    child: Image.file(
+                    File(
+                        loadedItem.image.path,
+                    ),
+                    fit: BoxFit.cover,
+                    ),
+                ),
+                ),
+            ),
+            SliverList(
+                delegate: SliverChildListDelegate(
+                [
+                    SizedBox(
+                    height: 10,
+                    ),
+                    Text(
+                    '\$${loadedItem.price}',
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                    height: 10,
+                    ),
+                    Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    width: double.infinity,
+                    child: Text(
+                        loadedItem.description,
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                    ),
+                    ),
+                    SizedBox(
+                    height: 800,
+                    ),
+                ],
+                ),
+            ),
+            ],
+        ),
+        );
+    }
+    }
+
+ </details>
+
+
 with this setup we can finnlly start codeing :raised_hands: 
 
 this will be helpful later.
@@ -1515,12 +1745,12 @@ For help getting started with Flutter, view
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-- login and register
-- home screen
-  - post component -  without like - share
-  - list of items from server - get data and display
-- post screen
-  - post screen component
+- login and register ^
+- home screen ^
+  - post component -  without like - share ^
+  - list of items from server - get data and display ^
+- item overview screen
+  - item overview screen component ^
   - transitions animations and scroll
 - add button
   - add post screen
@@ -1534,3 +1764,323 @@ samples, guidance on mobile development, and a full API reference.
   - edit screen
 - like
   - side bar action button (filters)
+
+<details>
+<summary>android/app/src/debug/AndroidManifest.xml</summary>
+
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="com.example.workshop1">
+        <!-- Flutter needs it to communicate with the running application
+            to allow setting breakpoints, to provide hot reload, etc.
+        -->
+        <uses-permission android:name="android.permission.INTERNET"/>
+    </manifest>
+
+</details>
+
+<details>
+<summary>android/app/src/main/AndroidManifest.xml</summary>
+
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.workshop1">
+    <!-- io.flutter.app.FlutterApplication is an android.app.Application that
+         calls FlutterMain.startInitialization(this); in its onCreate method.
+         In most cases you can leave this as-is, but you if you want to provide
+         additional functionality it is fine to subclass or reimplement
+         FlutterApplication and put your custom class here. -->
+    <application
+        android:name="io.flutter.app.FlutterApplication"
+        android:label="test_proj"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    </manifest>
+</details>
+
+
+<details>
+<summary>android/app/google-services.json</summary>
+
+    {
+    "project_info": {
+        "project_number": "90010214377",
+        "firebase_url": "https://flutter-workshop-eef86.firebaseio.com",
+        "project_id": "flutter-workshop-eef86",
+        "storage_bucket": "flutter-workshop-eef86.appspot.com"
+    },
+    "client": [
+        {
+        "client_info": {
+            "mobilesdk_app_id": "1:90010214377:android:ddb59dc63b8d05de29f578",
+            "android_client_info": {
+            "package_name": "com.example.sign_in_flutter"
+            }
+        },
+        "oauth_client": [
+            {
+            "client_id": "90010214377-4r58u39907bavsens11od9sjd6ksisp3.apps.googleusercontent.com",
+            "client_type": 1,
+            "android_info": {
+                "package_name": "com.example.sign_in_flutter",
+                "certificate_hash": "0e7e1a2b2f9d992e6a1dee26fd20de2fa0fcf416"
+            }
+            },
+            {
+            "client_id": "90010214377-r9a8rf8b46giu27h73l6pmdehb57bk2s.apps.googleusercontent.com",
+            "client_type": 3
+            }
+        ],
+        "api_key": [
+            {
+            "current_key": "AIzaSyA66OELi9lld9M-5VEfC77XSOv-3ksWgmQ"
+            }
+        ],
+        "services": {
+            "appinvite_service": {
+            "other_platform_oauth_client": [
+                {
+                "client_id": "90010214377-r9a8rf8b46giu27h73l6pmdehb57bk2s.apps.googleusercontent.com",
+                "client_type": 3
+                },
+                {
+                "client_id": "90010214377-jpk8b23p6s5btfvah5f1ahv5tlskc5ol.apps.googleusercontent.com",
+                "client_type": 2,
+                "ios_info": {
+                    "bundle_id": "com.example.signInFlutter"
+                }
+                }
+            ]
+            }
+        }
+        },
+        {
+        "client_info": {
+            "mobilesdk_app_id": "1:90010214377:android:391443a6086b32d729f578",
+            "android_client_info": {
+            "package_name": "com.example.workshop1"
+            }
+        },
+        "oauth_client": [
+            {
+            "client_id": "90010214377-jsu3vp1k4d0nluo8v3ju5np6t0smm7mo.apps.googleusercontent.com",
+            "client_type": 1,
+            "android_info": {
+                "package_name": "com.example.workshop1",
+                "certificate_hash": "0e7e1a2b2f9d992e6a1dee26fd20de2fa0fcf416"
+            }
+            },
+            {
+            "client_id": "90010214377-r9a8rf8b46giu27h73l6pmdehb57bk2s.apps.googleusercontent.com",
+            "client_type": 3
+            }
+        ],
+        "api_key": [
+            {
+            "current_key": "AIzaSyA66OELi9lld9M-5VEfC77XSOv-3ksWgmQ"
+            }
+        ],
+        "services": {
+            "appinvite_service": {
+            "other_platform_oauth_client": [
+                {
+                "client_id": "90010214377-r9a8rf8b46giu27h73l6pmdehb57bk2s.apps.googleusercontent.com",
+                "client_type": 3
+                },
+                {
+                "client_id": "90010214377-jpk8b23p6s5btfvah5f1ahv5tlskc5ol.apps.googleusercontent.com",
+                "client_type": 2,
+                "ios_info": {
+                    "bundle_id": "com.example.signInFlutter"
+                }
+                }
+            ]
+            }
+        }
+        }
+    ],
+    "configuration_version": "1"
+    }
+</details>
+
+<details>
+<summary>android/app/build.gradle</summary>
+
+    def localProperties = new Properties()
+    def localPropertiesFile = rootProject.file('local.properties')
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.withReader('UTF-8') { reader ->
+            localProperties.load(reader)
+        }
+    }
+
+    def flutterRoot = localProperties.getProperty('flutter.sdk')
+    if (flutterRoot == null) {
+        throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+    }
+
+    def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+    if (flutterVersionCode == null) {
+        flutterVersionCode = '1'
+    }
+
+    def flutterVersionName = localProperties.getProperty('flutter.versionName')
+    if (flutterVersionName == null) {
+        flutterVersionName = '1.0'
+    }
+
+    apply plugin: 'com.android.application'
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'kotlin-android'
+    apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+    android {
+        compileSdkVersion 28
+
+        sourceSets {
+            main.java.srcDirs += 'src/main/kotlin'
+        }
+
+        lintOptions {
+            disable 'InvalidPackage'
+        }
+
+        defaultConfig {
+            // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+            applicationId "com.example.workshop1"
+            minSdkVersion 16
+            targetSdkVersion 28
+            versionCode flutterVersionCode.toInteger()
+            versionName flutterVersionName
+            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        }
+
+        buildTypes {
+            release {
+                // TODO: Add your own signing config for the release build.
+                // Signing with the debug keys for now, so `flutter run --release` works.
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+
+    flutter {
+        source '../..'
+    }
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+        testImplementation 'junit:junit:4.12'
+        androidTestImplementation 'androidx.test:runner:1.1.1'
+        androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+        implementation 'com.google.firebase:firebase-analytics:17.2.2'
+    }
+
+    </details>
+
+
+    <details>
+    <summary>android/build.gradle</summary>
+
+        buildscript {
+        ext.kotlin_version = '1.3.50'
+        repositories {
+            google()
+            jcenter()
+        }
+
+        dependencies {
+            classpath 'com.android.tools.build:gradle:3.5.0'
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            classpath 'com.google.gms:google-services:4.3.3'
+        }
+    }
+
+    allprojects {
+        repositories {
+            google()
+            jcenter()
+        }
+    }
+
+    rootProject.buildDir = '../build'
+    subprojects {
+        project.buildDir = "${rootProject.buildDir}/${project.name}"
+    }
+    subprojects {
+        project.evaluationDependsOn(':app')
+    }
+
+    task clean(type: Delete) {
+        delete rootProject.buildDir
+    }
+
+
+</details>
+<details>
+<summary>/android/build.gradle</summary>
+buildscript {
+    ext.kotlin_version = '1.3.50'
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.3.3'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+</details>
+<details>
+<summary>android/app/src/main/kotlin/com/example/[projectname]/MainActivity.kt</summary>
+package com.example.workshop1
+
+import androidx.annotation.NonNull;
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugins.GeneratedPluginRegistrant
+
+class MainActivity: FlutterActivity() {
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        GeneratedPluginRegistrant.registerWith(flutterEngine);
+    }
+}
+
+</details>

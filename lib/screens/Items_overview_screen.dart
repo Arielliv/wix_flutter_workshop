@@ -4,8 +4,6 @@ import '../widgets/items_grid.dart';
 
 import '../providers/items.dart';
 
-enum FilterOptions { Favorites, All, Finished, Unfinished }
-
 class ItemsOverviewScreen extends StatefulWidget {
   @override
   _ProductsOverviewScreenState createState() => _ProductsOverviewScreenState();

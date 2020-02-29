@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import '../providers/item.dart';
 
 class Items with ChangeNotifier {
@@ -31,21 +35,19 @@ class Items with ChangeNotifier {
       if (extractedData == null) {
         return;
       } else {
-        final url = '$baseUrl/userFavorites/$userId.json?auth=$authToken';
-        final favoriteResponse = await http.get(url);
-        final favoriteData = json.decode(favoriteResponse.body);
         final List<Item> loadedItems = [];
-        extractedData.forEach((itemId, itemData) {
+        for (var entry in extractedData.entries) {
+          var file = await downloadImage(entry.value['image']);
+          Future.delayed(const Duration(milliseconds: 20), () => "20");
           loadedItems.add(Item(
-            id: itemId,
-            title: itemData['title'],
-            description: itemData['description'],
-            price: itemData['price'],
-            isFavorite:
-                favoriteData == null ? false : favoriteData[itemId] ?? false,
-            imagePath: itemData['imagePath'],
+            id: entry.key,
+            title: entry.value['title'],
+            description: entry.value['description'],
+            price: entry.value['price'],
+            isFavorite: false,
+            image: file,
           ));
-        });
+        }
         _items = loadedItems;
 
         notifyListeners();
@@ -53,5 +55,19 @@ class Items with ChangeNotifier {
     } catch (error) {
       throw error;
     }
+  }
+
+  Future downloadImage(String imageName) async {
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child(imageName);
+    String downloadUrl = await firebaseStorageRef.getDownloadURL();
+    http.Client client = new http.Client();
+    var req = await client.get(Uri.parse(downloadUrl));
+    var bytes = req.bodyBytes;
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    File file = new File('$dir/$imageName');
+    await file.writeAsBytes(bytes);
+    await file.create();
+    return file;
   }
 }
