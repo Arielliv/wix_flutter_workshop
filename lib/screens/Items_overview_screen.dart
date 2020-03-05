@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wix_flutter_workshop/screens/add_item_screen.dart';
+import 'package:wix_flutter_workshop/widgets/app_drawer.dart';
 import '../widgets/items_grid.dart';
 
 import '../providers/items.dart';
@@ -35,6 +36,7 @@ class _ProductsOverviewScreenState extends State<ItemsOverviewScreen> {
       appBar: AppBar(
         title: Text('Flutter Workshop'),
       ),
+      drawer: AppDrawer(),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(),

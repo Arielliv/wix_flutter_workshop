@@ -2373,8 +2373,86 @@ return Scaffold(
 
 so we are starting to have a lot of screens, we should make navigation between them be easy - lets make navigation menu which be `App Drawer`
 
-- 
+- for start it will have buttons for `Logout` and `Home` navigation
+- lets create `pp_drawer.dart` in widgets folder , and create `StatelessWidget` called `AppDrawer`
+- it will return `Drawer` widget (A material design panel that slides in horizontally from the edge of a Scaffold to show navigation links in an application)
+     - inside `Drawer` we will return `Column` widget with some widgets:
+        - `AppBar` with `title` and inside it  (An app bar consists of a toolbar and potentially other widgets, such as a TabBar and a FlexibleSpaceBar. App bars typically expose one or more common actions with IconButtons which are optionally followed by a PopupMenuButton for less common operations (sometimes called the "overflow menu"))
 
+        ```
+        AppBar(
+                title: Text('Flutter Wix Workshop'),
+                automaticallyImplyLeading: false,
+            ),
+        ```
+
+        - `Divider` (A thin horizontal line, with padding on either side)
+        - `ListTile` (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
+        it will contain the `Icon` ,`Text` and `onTap`.
+        - we will make two sets of `Divider` + `ListTile` for `Logout` and `Home`
+        ```
+        Divider(),
+            ListTile(
+                leading: Icon(Icons.exit_to_app),
+                title: Text('Logout'),
+                onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacementNamed('/');
+                Provider.of<Auth>(context, listen: false).logout();
+                },
+            ),
+        ```
+
+        - create one for `Home` with home icon. `onTap` will navigate to `ItemsOvwerviewScreen` (it will `pushReplacementNamed` and not just `push` the rout)
+
+<details>
+<summary>app_drawer.dart</summary>
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+
+    import '../providers/auth.dart';
+
+    class AppDrawer extends StatelessWidget {
+    @override
+    Widget build(BuildContext context) {
+        return Drawer(
+        child: Column(
+            children: <Widget>[
+            AppBar(
+                title: Text('Flutter Wix Workshop'),
+                automaticallyImplyLeading: false,
+            ),
+            Divider(),
+            ListTile(
+                leading: Icon(Icons.home),
+                title: Text('Home'),
+                onTap: () {
+                Navigator.of(context).pushReplacementNamed('/');
+                },
+            ),
+            Divider(),
+            ListTile(
+                leading: Icon(Icons.exit_to_app),
+                title: Text('Logout'),
+                onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacementNamed('/');
+                Provider.of<Auth>(context, listen: false).logout();
+                },
+            ),
+            ],
+        ),
+        );
+    }
+    }
+</details>
+
+- now lets start using our new `AppDrawer`
+- add `appDrawer` property to `Scafolled` on top of `body` property in `itemsOverViewScreen` 
+```
+drawer: AppDrawer(),
+```
 
 with this setup we can finnlly start codeing :raised_hands: 
 
@@ -2403,10 +2481,10 @@ samples, guidance on mobile development, and a full API reference.
   - add post screen ^
   - validation ^
   - take a picutre ^
-- app drawer
-  - menu items (home and mange)
-  - logout
+- app drawer ^
+  - logout ^
 - mange screen
+  - menu items (mange in appdrawer)
   - remove post
   - edit screen
 - like
