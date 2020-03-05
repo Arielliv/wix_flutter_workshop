@@ -1728,6 +1728,653 @@ after getting the in fostructre ready, lets add our screen detail ui
 
  </details>
 
+## Add Button and Add Item Screen
+
+- lets add add button to our main screen `ItemsOverviewScreen` 
+- in `Scaffold` we need to add another property `floatingActionButton`, inside of it we will use `FloatingActionButton` widget 
+    - in `onPressed` function we will have navigation to our new widget `addItem` - `AddItemScreen.routeName`
+
+```
+floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed(AddItemScreen.routeName);
+        },
+        tooltip: 'Add Item',
+        child: const Icon(Icons.add),
+      ),
+```  
+
+- lets create `AddItemScreen` - create file `add_item_screen.dart`
+- it will be `StatefulWidget`
+- dont forget to import `'package:flutter/material.dart'`
+- we need to add its rout to the routs in `main.dart` file
+- also we need to create  route to `addItemScreen` screen
+```
+static const routeName = '/add-item';
+```
+
+- we need to add to `main.dart` route to `AddItemScreen`
+
+```
+ AddItemScreen.routeName: (ctx) => AddItemScreen(),
+```
+- go to `items.dart` and add the code below , it would be usefull later
+
+```
+import 'package:path/path.dart' as path;
+...
+...
+...
+Future<void> addItem(Item item) async {
+    final url = '$baseUrl/items.json?auth=$authToken';
+    try {
+      print(path.basename(item.image.path));
+      print(path.extension(item.image.path));
+      final response = await http.post(url,
+          body: json.encode({
+            'title': item.title,
+            'description': item.description,
+            'price': item.price,
+            'creatorId': userId,
+            'image': path.basename(item.image.path)
+          }));
+
+      await uploadPic(item.image);
+
+      final newItem = Item(
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          id: json.decode(response.body)['name'],
+          image: item.image);
+
+      _items.add(newItem);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+Future<void> uploadPic(File image) async {
+    String fileName = path.basename(image.path);
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(image);
+    uploadTask.onComplete;
+  }
+```
+
+- now we can start working on `AddItemScreen` logic an ui
+    - we will have a `Form` widget for the inputs (handling the input + validations)
+
+- Inside `_AddItemScreenState`
+- we need to create `GlobalKey` for the form state (Global keys uniquely identify elements. Global keys provide access to other objects that are associated with those elements, such as BuildContext. For StatefulWidgets, global keys also provide access to State)
+- we will have init values for the inputs and empty `Item` variable
+
+- we will use `TextFormField` widget for the simple text inputs , and for the user to jump easly between the inputs we will use `focusNode` properties, we need to initate them
+- lets add `isLoading` and `isInit` vaible also to use later
+
+```
+  final _form = GlobalKey<FormState>();
+  final _descriptionFocusNode = FocusNode();
+
+  final _priceFocusNode = FocusNode();
+  File _pickedImage;
+
+var _addItem = Item(
+    id: null,
+    title: '',
+    price: 0,
+    description: '',
+    image: null,
+  );
+
+  var _initValues = {
+    'title': '',
+    'description': '',
+    'price': '',
+    'image': '',
+  };
+
+  var _isInit = true;
+  var _isLoading = false;
+
+```
+- UI
+    - we will returen `Scaffold` widget 
+
+```
+return Scaffold(
+      appBar: AppBar(
+        title: Text('Add New Item'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _saveForm,
+          )
+        ],
+      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _form,
+                child: ListView(
+                  children: <Widget>[
+                      ....
+                      ....
+                      ....
+```
+
+- lets add all the inputs here 
+    - form lets us use onSubmit function for all the inputs inside of it, therefore we will have in each `TextFieldInput` `onSave` function to handle it self when it got submitted
+    - also each one will have `initValue` property 
+    - `decoration` property will be his title 
+    - `onFieldSubmitted` property will be moving between inputs after submiting one
+    - `validator` will get value and check our custome ruls about it 
+
+    ```
+    TextFormField(
+                      initialValue: _initValues['title'],
+                      decoration: InputDecoration(labelText: 'Title'),
+                      textInputAction: TextInputAction.next,
+                      onSaved: (value) => _addItem = Item(
+                        title: value,
+                        id: _addItem.id,
+                        isFavorite: _addItem.isFavorite,
+                        price: _addItem.price,
+                        description: _addItem.description,
+                        image:
+                            _pickedImage != null ? _pickedImage : _addItem,
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please provide a value';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_priceFocusNode),
+                    ),
+    ```
+
+    - please create also `price` and `description` textFields 
+
+    <details>
+    <summary>inputs</summary>
+                    TextFormField(
+                      initialValue: _initValues['price'],
+                      decoration: InputDecoration(labelText: 'Price'),
+                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.number,
+                      focusNode: _priceFocusNode,
+                      onSaved: (value) => _addItem = Item(
+                        title: _addItem.title,
+                        id: _addItem.id,
+                        isFavorite: _addItem.isFavorite,
+                        price: double.parse(value),
+                        description: _addItem.description,
+                        image:
+                            _pickedImage != null ? _pickedImage : _addItem,
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter a price';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        if (double.parse(value) <= 0) {
+                          return 'Please enter a number greter then zero';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (_) => FocusScope.of(context)
+                          .requestFocus(_descriptionFocusNode),
+                    ),
+                    TextFormField(
+                      initialValue: _initValues['description'],
+                      decoration: InputDecoration(labelText: 'Description'),
+                      maxLines: 3,
+                      onSaved: (value) => _addItem = Item(
+                        title: _addItem.title,
+                        id: _addItem.id,
+                        isFavorite: _addItem.isFavorite,
+                        price: _addItem.price,
+                        description: value,
+                        image:
+                            _pickedImage != null ? _pickedImage : _addItem,
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please provide a description';
+                        }
+                        if (value.length < 10) {
+                          return 'Should be at least 10 charectersling';
+                        }
+                        return null;
+                      },
+                      keyboardType: TextInputType.multiline,
+                      focusNode: _descriptionFocusNode,
+                    ),
+    </details>
+
+- now we just need to create `ImageInput`
+    - lets create new file in inputs folder we have `image_input.dart`
+    - it will be `Stateful` widget
+    - it will get `onSelectImage` function from `AddItemScreen` so it would be avialable in the form
+    - dont forget to import `import package:flutter/material.dart`
+    - we will use `image_picker` package.
+    
+    - lets create `takePicture` function , which will take picture with phone camera , and  `storedImage` variable
+
+```        
+         File _storedImage;
+
+        _takePicture() async {
+            final imageFile = await ImagePicker.pickImage(
+            source: ImageSource.camera,
+            maxWidth: 600,
+            );
+
+            if (imageFile == null) {
+            return;
+            }
+            setState(() {
+            _storedImage = imageFile;
+            });
+
+            widget.onSelectImage(imageFile);
+        }
+```
+
+- now add this code for the ui 
+
+    ```
+        return Row(
+            children: <Widget>[
+                Container(
+                width: 150,
+                height: 100,
+                decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Colors.grey),
+                ),
+                child: _storedImage != null
+                    ? Image.file(
+                        _storedImage,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        )
+                    : Text(
+                        'No Image Taken',
+                        textAlign: TextAlign.center,
+                        ),
+                alignment: Alignment.center,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                child: FlatButton.icon(
+                    icon: Icon(Icons.camera),
+                    label: Text('Take picture'),
+                    textColor: Theme.of(context).primaryColor,
+                    onPressed: _takePicture,
+                ),
+                ),
+            ],
+        );
+    ```
+
+     - `onPressed` will trriger `_takePicture` function , and then will update `AddItemScreen` form
+
+    <details>
+    <summary>image_input.dart</summary>
+
+            import 'dart:io';
+
+            import 'package:flutter/material.dart';
+            import 'package:image_picker/image_picker.dart';
+
+            class ImageInput extends StatefulWidget {
+            final Function onSelectImage;
+            ImageInput(this.onSelectImage);
+
+            @override
+            _ImageInputState createState() => _ImageInputState();
+            }
+
+            class _ImageInputState extends State<ImageInput> {
+            File _storedImage;
+
+            _takePicture() async {
+                final imageFile = await ImagePicker.pickImage(
+                source: ImageSource.camera,
+                maxWidth: 600,
+                );
+
+                if (imageFile == null) {
+                return;
+                }
+                setState(() {
+                _storedImage = imageFile;
+                });
+
+                widget.onSelectImage(imageFile);
+            }
+
+            @override
+            Widget build(BuildContext context) {
+                return Row(
+                children: <Widget>[
+                    Container(
+                    width: 150,
+                    height: 100,
+                    decoration: BoxDecoration(
+                        border: Border.all(width: 1, color: Colors.grey),
+                    ),
+                    child: _storedImage != null
+                        ? Image.file(
+                            _storedImage,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            )
+                        : Text(
+                            'No Image Taken',
+                            textAlign: TextAlign.center,
+                            ),
+                    alignment: Alignment.center,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                    child: FlatButton.icon(
+                        icon: Icon(Icons.camera),
+                        label: Text('Take picture'),
+                        textColor: Theme.of(context).primaryColor,
+                        onPressed: _takePicture,
+                    ),
+                    ),
+                ],
+                );
+            }
+            }
+
+    </details>
+
+    - back to the form , ltes add image input under the others inputs 
+    - and create _selectImage function
+    ```
+    Container(
+                      width: 100,
+                      height: 100,
+                      margin: EdgeInsets.only(top: 8, right: 10),
+                      child: ImageInput(_selectImage),
+                    ),
+    ```
+
+    - lets create `_saveForm` function , it will validate our inputs and then will add new item to our firebase
+    - it will show loader while we are wating for response
+    - in case of error it will show `AlertDialog`
+    - after it will finish all steps it will close `AddItemScreen` (will use Navigator.of(context).pop())
+
+    <details>
+    <summary>_saveForm</summary>
+
+        Future<void> _saveForm() async {
+            final isValid = _form.currentState.validate();
+            if (!isValid) {
+            return;
+            }
+            _form.currentState.save();
+            setState(() {
+            _isLoading = true;
+            });
+            try {
+            await Provider.of<Items>(context, listen: false).addItem(_addItem);
+            } catch (error) {
+            await showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                title: Text('An error occurred'),
+                content: Text(error.toString()), //some thing went wrong
+                actions: <Widget>[
+                    FlatButton(
+                    child: Text('Okay'),
+                    onPressed: () {
+                        Navigator.of(context).pop();
+                    },
+                    )
+                ],
+                ),
+            );
+            }
+
+            setState(() {
+            _isLoading = false;
+            });
+            Navigator.of(context).pop();
+        }
+
+    </details>
+
+- all left to so it to `dispose` all elements of focusNode in `dispose` time (Called when this object is removed from the tree permanently) 
+
+```
+@override
+  void dispose() {
+    _priceFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    super.dispose();
+  }
+```
+
+<details>
+    <summary>add_item_screen.dart</summary>
+
+            import 'dart:io';
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+    import 'package:test_proj/providers/item.dart';
+    import '../providers/items.dart';
+
+    class AddItemScreen extends StatefulWidget {
+    static const routeName = '/add-item';
+    @override
+    _AddItemScreenState createState() => _AddItemScreenState();
+    }
+
+    class _AddItemScreenState extends State<AddItemScreen> {
+    final _form = GlobalKey<FormState>();
+    final _descriptionFocusNode = FocusNode();
+
+    final _priceFocusNode = FocusNode();
+    File _pickedImage;
+
+    void _selectImage(File pickedImage) {
+        _pickedImage = pickedImage;
+    }
+
+    var _addItem = Item(
+        id: null,
+        title: '',
+        price: 0,
+        description: '',
+        image: null,
+    );
+
+    var _initValues = {
+        'title': '',
+        'description': '',
+        'price': '',
+        'image': '',
+    };
+
+    var _isInit = true;
+    var _isLoading = false;
+
+    @override
+    void dispose() {
+        _priceFocusNode.dispose();
+        _descriptionFocusNode.dispose();
+        super.dispose();
+    }
+
+    Future<void> _saveForm() async {
+        final isValid = _form.currentState.validate();
+        if (!isValid) {
+        return;
+        }
+        _form.currentState.save();
+        setState(() {
+        _isLoading = true;
+        });
+        try {
+        await Provider.of<Items>(context, listen: false).addItem(_addItem);
+        } catch (error) {
+        await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+            title: Text('An error occurred'),
+            content: Text(error.toString()), //some thing went wrong
+            actions: <Widget>[
+                FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                    Navigator.of(context).pop();
+                },
+                )
+            ],
+            ),
+        );
+        }
+
+        setState(() {
+        _isLoading = false;
+        });
+        Navigator.of(context).pop();
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+        appBar: AppBar(
+            title: Text('Add New Item'),
+            actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.save),
+                onPressed: _saveForm,
+            )
+            ],
+        ),
+        body: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+                )
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                    key: _form,
+                    child: ListView(
+                    children: <Widget>[
+                        TextFormField(
+                        initialValue: _initValues['title'],
+                        decoration: InputDecoration(labelText: 'Title'),
+                        textInputAction: TextInputAction.next,
+                        onSaved: (value) => _addItem = Item(
+                            title: value,
+                            id: _addItem.id,
+                            isFavorite: _addItem.isFavorite,
+                            price: _addItem.price,
+                            description: _addItem.description,
+                            image:
+                                _pickedImage != null ? _pickedImage : _addItem,
+                        ),
+                        validator: (value) {
+                            if (value.isEmpty) {
+                            return 'Please provide a value';
+                            }
+                            return null;
+                        },
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).requestFocus(_priceFocusNode),
+                        ),
+                        TextFormField(
+                        initialValue: _initValues['price'],
+                        decoration: InputDecoration(labelText: 'Price'),
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.number,
+                        focusNode: _priceFocusNode,
+                        onSaved: (value) => _addItem = Item(
+                            title: _addItem.title,
+                            id: _addItem.id,
+                            isFavorite: _addItem.isFavorite,
+                            price: double.parse(value),
+                            description: _addItem.description,
+                            image:
+                                _pickedImage != null ? _pickedImage : _addItem,
+                        ),
+                        validator: (value) {
+                            if (value.isEmpty) {
+                            return 'Please enter a price';
+                            }
+                            if (double.tryParse(value) == null) {
+                            return 'Please enter a valid number';
+                            }
+                            if (double.parse(value) <= 0) {
+                            return 'Please enter a number greter then zero';
+                            }
+                            return null;
+                        },
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(_descriptionFocusNode),
+                        ),
+                        TextFormField(
+                        initialValue: _initValues['description'],
+                        decoration: InputDecoration(labelText: 'Description'),
+                        maxLines: 3,
+                        onSaved: (value) => _addItem = Item(
+                            title: _addItem.title,
+                            id: _addItem.id,
+                            isFavorite: _addItem.isFavorite,
+                            price: _addItem.price,
+                            description: value,
+                            image:
+                                _pickedImage != null ? _pickedImage : _addItem,
+                        ),
+                        validator: (value) {
+                            if (value.isEmpty) {
+                            return 'Please provide a description';
+                            }
+                            if (value.length < 10) {
+                            return 'Should be at least 10 charectersling';
+                            }
+                            return null;
+                        },
+                        keyboardType: TextInputType.multiline,
+                        focusNode: _descriptionFocusNode,
+                        ),
+                        Container(
+                        width: 100,
+                        height: 100,
+                        margin: EdgeInsets.only(top: 8, right: 10),
+                        child: ImageInput(_selectImage),
+                        ),
+                    ],
+                    ),
+                ),
+                ),
+        );
+    }
+    }
+</details>
+
+## App Drawer
+
+so we are starting to have a lot of screens, we should make navigation between them be easy - lets make navigation menu which be `App Drawer`
+
+- 
+
 
 with this setup we can finnlly start codeing :raised_hands: 
 
@@ -1751,11 +2398,11 @@ samples, guidance on mobile development, and a full API reference.
   - list of items from server - get data and display ^
 - item overview screen
   - item overview screen component ^
-  - transitions animations and scroll
-- add button
-  - add post screen
-  - validation
-  - take a picutre
+  - transitions animations and scroll ^
+- add button ^
+  - add post screen ^
+  - validation ^
+  - take a picutre ^
 - app drawer
   - menu items (home and mange)
   - logout

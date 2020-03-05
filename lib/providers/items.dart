@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../providers/item.dart';
+import 'package:path/path.dart' as path;
 
 class Items with ChangeNotifier {
   final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
@@ -69,5 +70,42 @@ class Items with ChangeNotifier {
     await file.writeAsBytes(bytes);
     await file.create();
     return file;
+  }
+
+  Future<void> addItem(Item item) async {
+    final url = '$baseUrl/items.json?auth=$authToken';
+    try {
+      print(path.basename(item.image.path));
+      print(path.extension(item.image.path));
+      final response = await http.post(url,
+          body: json.encode({
+            'title': item.title,
+            'description': item.description,
+            'price': item.price,
+            'creatorId': userId,
+            'image': path.basename(item.image.path)
+          }));
+
+      await uploadPic(item.image);
+
+      final newItem = Item(
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          id: json.decode(response.body)['name'],
+          image: item.image);
+
+      _items.add(newItem);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+Future<void> uploadPic(File image) async {
+    String fileName = path.basename(image.path);
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(image);
+    uploadTask.onComplete;
   }
 }
