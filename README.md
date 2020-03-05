@@ -2374,7 +2374,7 @@ return Scaffold(
 so we are starting to have a lot of screens, we should make navigation between them be easy - lets make navigation menu which be `App Drawer`
 
 - for start it will have buttons for `Logout` and `Home` navigation
-- lets create `pp_drawer.dart` in widgets folder , and create `StatelessWidget` called `AppDrawer`
+- lets create `app_drawer.dart` in widgets folder , and create `StatelessWidget` called `AppDrawer`
 - it will return `Drawer` widget (A material design panel that slides in horizontally from the edge of a Scaffold to show navigation links in an application)
      - inside `Drawer` we will return `Column` widget with some widgets:
         - `AppBar` with `title` and inside it  (An app bar consists of a toolbar and potentially other widgets, such as a TabBar and a FlexibleSpaceBar. App bars typically expose one or more common actions with IconButtons which are optionally followed by a PopupMenuButton for less common operations (sometimes called the "overflow menu"))
@@ -2454,6 +2454,241 @@ so we are starting to have a lot of screens, we should make navigation between t
 drawer: AppDrawer(),
 ```
 
+## Mange Items Screen
+
+- lets create `mange_items_screen.dart` in screens folder , and create `StatelessWidget` called `MangeItemsScreen`
+- lets add route to it just like before
+    ```
+    static const routeName = '/user-items';
+    ```
+- in this page we will show **only** items which the logged in user created
+- we will pass `filterByUser` true to `fetchAndSetItems` function in the `items provider`
+- lets add `_refreshItems` function to our widget (Widget that builds itself based on the latest snapshot of interaction with a Future)
+    - it will trigger each time `_refreshItems` function with the `contex`
+
+
+```
+  Future<void> _refreshItems(BuildContext context) async {
+    await Provider.of<Items>(context, listen: false).fetchAndSetItems(true);
+  }
+```
+- we will return `Scaffold`  widget with `AppBar`(which will contain `IconButton` with `add` icon and `onPressed` function which will navigate us to `AddItemScreen`) widget and with our `appDrawer`
+```
+appBar: AppBar(
+        title: Text('Your Items'),
+        actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () {
+                Navigator.of(context).pushNamed(AddItemScreen.routeName);
+                },
+            )
+            ],
+      ),
+      drawer: AppDrawer(),
+```
+- in `body` we will have `FutureBuilder` widget 
+    - it will contain two properties : `future` and `builder`
+    - the builder will get called first when the widget is renderd(we will show `CircularProgressIndicator` widget for it) , then when the future will finish and we will get response, it will handle it, and we will get to show the items.
+
+```
+body: FutureBuilder(
+        future: _refreshItems(context),
+        builder: (context, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => _refreshItems(context),
+                    child: Consumer<Items>(
+                      builder: (context, itemsData, _) => Padding(
+                        padding: EdgeInsets.all(8),
+                        child: ListView.builder(
+                          itemCount: itemsData.items.length,
+                          itemBuilder: (_, i) => Column(
+                            children: <Widget>[
+                              .
+                              .
+                              .
+                              .
+                              .
+                              Divider(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+      ),
+```
+- now we are missing a widget for the `items` data we have , so lets create one
+- it will be called `ManageItemView`
+
+- lets create `mange_item_view.dart` in widgets folder , and create `StatelessWidget` called `ManageItemView` 
+- it will get id, title, and image as class properties
+```
+  final String id;
+  final String title;
+  final File image;
+
+  ManageItemView(this.id, this.title, this.image);
+``` 
+- we will return `ListTile` widget (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
+    - it will contain `title`, `leading` and `trailing` properties
+    - `title` will be `Text` widget with the title we got 
+    - `leading` will be `CircleAvatar` widget with `backgroundImage` with the Image we got
+    - `trailing` will return `Container` widget , for now it will return empty `Row` widget
+
+    ```
+    return ListTile(
+        title: Text(title),
+        leading: CircleAvatar(
+            backgroundImage: FileImage((image)),
+        ),
+        trailing: Container(
+            width: 100,
+            child: Row(
+            children: <Widget>[
+            ],
+            ),
+        ),
+        );
+    ```
+
+<details>
+<summary>mange_item_view.dart</summary>
+
+    import 'dart:io';
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+    import 'package:workshop1/screens/edit_item_screen.dart';
+    import '../providers/items.dart';
+
+    class ManageItemView extends StatelessWidget {
+    final String id;
+    final String title;
+    final File image;
+
+    ManageItemView(this.id, this.title, this.image);
+
+    @override
+    Widget build(BuildContext context) {
+        return ListTile(
+        title: Text(title),
+        leading: CircleAvatar(
+            backgroundImage: FileImage((image)),
+        ),
+        trailing: Container(
+            width: 100,
+            child: Row(
+            children: <Widget>[
+            ],
+            ),
+        ),
+        );
+    }
+    }
+
+</details>
+
+- lets fill up the code that missing in `MangeItemsScreen` in the `itemBuilder childern` - 
+
+```
+ ManageItemView(
+        itemsData.items[i].id,
+        itemsData.items[i].title,
+        itemsData.items[i].image,
+    ),
+``` 
+
+- lets add button for our manage page in the `AppDrawer`, under `home` button we will add `Divider` and `ListTile` with 'Mange Items' text
+
+```
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Mange Items'),
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(ManageItemsScreen.routeName);
+            },
+          ),
+```
+
+- and we need to add the rout to `main.dart` file 
+```
+ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
+```
+
+<details>
+<summary>mange_items_screen.dart</summary>
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
+    import 'package:workshop1/screens/edit_item_screen.dart';
+    import 'package:workshop1/widgets/user_item_view.dart';
+
+    import '../widgets/app_drawer.dart';
+    import '../providers/items.dart';
+
+    class UserItemsScreen extends StatelessWidget {
+    static const routeName = '/user-items';
+
+    Future<void> _refreshItems(BuildContext context) async {
+        await Provider.of<Items>(context, listen: false).fetchAndSetItems(true);
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+        appBar: AppBar(
+            title: Text('Your Items'),
+            actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () {
+                Navigator.of(context).pushNamed(AddItemScreen.routeName);
+                },
+            )
+            ],
+        ),
+        drawer: AppDrawer(),
+        body: FutureBuilder(
+            future: _refreshItems(context),
+            builder: (context, snapshot) =>
+                snapshot.connectionState == ConnectionState.waiting
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                    )
+                    : RefreshIndicator(
+                        onRefresh: () => _refreshItems(context),
+                        child: Consumer<Items>(
+                        builder: (context, itemsData, _) => Padding(
+                            padding: EdgeInsets.all(8),
+                            child: ListView.builder(
+                            itemCount: itemsData.items.length,
+                            itemBuilder: (_, i) => Column(
+                                children: <Widget>[
+                                ManageItemView(
+                                    itemsData.items[i].id,
+                                    itemsData.items[i].title,
+                                    itemsData.items[i].image,
+                                ),
+                                Divider(),
+                                ],
+                            ),
+                            ),
+                        ),
+                        ),
+                    ),
+        ),
+        );
+    }
+    }
+
+</details>
 with this setup we can finnlly start codeing :raised_hands: 
 
 this will be helpful later.
@@ -2483,8 +2718,8 @@ samples, guidance on mobile development, and a full API reference.
   - take a picutre ^
 - app drawer ^
   - logout ^
-- mange screen
-  - menu items (mange in appdrawer)
+- mange screen ^
+  - menu items (mange in appdrawer) ^
   - remove post
   - edit screen
 - like

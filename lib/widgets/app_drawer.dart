@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wix_flutter_workshop/screens/mange_items_screen.dart';
 
 import '../providers/auth.dart';
 
@@ -19,6 +20,15 @@ class AppDrawer extends StatelessWidget {
             title: Text('Home'),
             onTap: () {
               Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Mange Items'),
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(ManageItemsScreen.routeName);
             },
           ),
           Divider(),
