@@ -2620,7 +2620,7 @@ body: FutureBuilder(
 - and we need to add the rout to `main.dart` file 
 ```
 ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
-```
+``` 
 
 <details>
 <summary>mange_items_screen.dart</summary>
@@ -2689,6 +2689,230 @@ ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
     }
 
 </details>
+
+## Delete Item
+
+lets start with adding this code to `items.dart` which will remove items from our server
+
+```
+Future<void> deleteItem(String id) async {
+    final url = '$baseUrl/items/$id.json?auth=$authToken';
+    final existingItemIndex = _items.indexWhere((item) => item.id == id);
+    var existingItem = _items[existingItemIndex];
+
+    _items.removeAt(existingItemIndex);
+    notifyListeners();
+
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.insert(existingItemIndex, existingItem);
+      notifyListeners();
+      throw HttpException('Could not delete item');
+    } else {
+      existingItem = null;
+    }
+  }
+ ```
+
+- and now lets add button in `ManageItemView` which will remove the item when clicked
+    - under `trailing -> children widgets` , we will add `IconButton` widget  who will be with icon `Icons.delete`
+    - `onPressed` will call our new function in `Items` provider , it will get `id` of item that will be removed
+    - `listen: false` will get value once and ignore updates (we don't need more)
+    - in case of error we will show snackBar 
+        - we need to get Scaffold from the context for that (under widget `build` function we will add it)
+
+        ```
+        final scaffold = Scaffold.of(context);
+        ```
+<details>
+    <summary>IconButton</summary>
+
+
+    IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () async {
+                try {
+                  Provider.of<Items>(context, listen: false).deleteItem(id);
+                } catch (error) {
+                  scaffold.showSnackBar(SnackBar(
+                    content: Text(
+                      'Deleteing faild!',
+                      textAlign: TextAlign.center,
+                    ),
+                  ));
+                }
+              },
+              color: Theme.of(context).errorColor,
+            )
+
+</details>
+
+# Bonus Part: Edit item , Like button
+
+## Like Button
+
+lets add like button on the item in our home screen
+
+- first lets add the function we need in our `Item` provider (this time not `Items` provider)
+- it will update item `isFavorite` staus in server for us
+```
+final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
+
+  void _setFavoriteValue(bool newValue) {
+    isFavorite = newValue;
+    notifyListeners();
+  }
+
+  Future<void> toggleFavoriteStatus(String token, String userId) async {
+    final oldStatus = isFavorite;
+    isFavorite = !isFavorite;
+    notifyListeners();
+    final url = '$baseUrl/userFavorites/$userId/$id.json?auth=$token';
+    try {
+      final response = await http.put(url,
+          body: json.encode(
+            isFavorite,
+          ));
+      if (response.statusCode >= 400) {
+        _setFavoriteValue(oldStatus);
+      }
+    } catch (error) {
+      _setFavoriteValue(oldStatus);
+      throw error;
+    }
+  }
+```
+
+- lets add new button for it in `ItemWidget`
+- we need first to get `authData` from `AuthProvider` 
+    - we need to add this line of code under `build` function
+    ```
+    final authData = Provider.of<Auth>(context, listen: false);
+    ```
+- now lets add `leading` property inside our footer `GridTileBar` widget 
+- it will be `Consumer` widget , it will listen to `Item` provider
+- it will hold inside `builder` function `IconButton` which will show `Icons.favorite` or `Icons.favorite_border` (depens if its liked or not)
+- `onPressed` will trriget `toggleFavoriteStatus` function 
+    - we need to pass `authData.token` and `authData.userId`
+
+
+<details>
+<summary>like button</summary>
+
+    leading: Consumer<Item>(
+            builder: (ctx, item, child) => IconButton(
+              icon: Icon(
+                  item.isFavorite ? Icons.favorite : Icons.favorite_border),
+              color: Theme.of(context).accentColor,
+              onPressed: () {
+                item.toggleFavoriteStatus(
+                  authData.token,
+                  authData.userId,
+                );
+              },
+            ),
+          ),
+
+</details>
+
+- lets add popup manue to select ig we want to show only favorites items
+- in `ItemsOverviewScreen` we will add `actions` property in `AppBar` widget
+- we will use `PopupMenuButton` widget (Displays a menu when pressed and calls onSelected when the menu is dismissed because an item was selected. The value passed to onSelected is the value of the selected menu item)
+    - `onSelect` will get slected value and will check if `_showOnlyFavorites` should be true or false
+    - icon property will be `Icons.more_vert`
+    - itemBuilder property will be `PopupMenuItem`
+        - one will be `Only Favorites` with value of `FilterOptions.Favorites` and another one will be `Show All` with value of `FilterOptions.All`
+
+    - we need to add `enum FilterOptions` ,lets add it on top of our class 
+    ```
+    enum FilterOptions { Favorites, All }
+    ```
+- we need to add to `Items` provider 
+```
+  List<Item> get favoritesItems {
+    return _items.where((productItem) => productItem.isFavorite).toList();
+  }
+```
+- now lets pass _showFavorites to `ItemsGrid`
+- inside `ItemsGrid` we will add `showOnlyFavorites` property to the class
+```
+final bool showOnlyFavorites;
+
+ItemsGrid(this.showOnlyFavorites);
+```
+- now we just need to get the right product according to the `showFavorites` property 
+```
+final productsData = Provider.of<Products>(context);
+    final prodcuts =
+        showOnlyFavorites ? productsData.favoritesItems : productsData.items;
+```
+- now we just to update `fetchAndSetItems` at `Items` provider
+
+```
+Future<void> fetchAndSetItems([bool filterByUser = false]) async {
+    final filterUrl =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    var url = '$baseUrl/items.json?auth=$authToken&$filterUrl';
+    print(authToken);
+    try {
+      final response = await http.get(url);
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if (extractedData == null) {
+        return;
+      } else {
+        final url =
+            'https://flutter-course-9a6bf.firebaseio.com/userFavorites/$userId.json?auth=$authToken';
+        final favoriteResponse = await http.get(url);
+        final favoriteData = json.decode(favoriteResponse.body);
+        final List<Item> loadedItems = [];
+        for (var entry in extractedData.entries) {
+          var file = await downloadImage(entry.value['image']);
+          Future.delayed(const Duration(milliseconds: 20), () => "20");
+          loadedItems.add(Item(
+            id: entry.key,
+            title: entry.value['title'],
+            description: entry.value['description'],
+            price: entry.value['price'],
+            isFavorite: favoriteData == null ? false : favoriteData[entry.key] ?? false,
+            image: file,
+          ));
+        }
+        _items = loadedItems;
+
+        notifyListeners();
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+```
+
+<details>
+<summary>PopupMenuButton</summary>
+
+    actions: <Widget>[
+          PopupMenuButton(
+            onSelected: (FilterOptions selectedValue) {
+              setState(() {
+                if (selectedValue == FilterOptions.Favorites) {
+                  _showOnlyFavorites = true;
+                } else {
+                  _showOnlyFavorites = false;
+                }
+              });
+            },
+            icon: Icon(
+              Icons.more_vert,
+            ),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                  child: Text('Only Favorites'),
+                  value: FilterOptions.Favorites),
+              PopupMenuItem(child: Text('Show All'), value: FilterOptions.All),
+            ],
+          )
+        ],
+</details>
 with this setup we can finnlly start codeing :raised_hands: 
 
 this will be helpful later.
@@ -2720,10 +2944,10 @@ samples, guidance on mobile development, and a full API reference.
   - logout ^
 - mange screen ^
   - menu items (mange in appdrawer) ^
-  - remove post
+  - remove post ^
   - edit screen
 - like
-  - side bar action button (filters)
+  - side bar action button (filters) ^
 
 <details>
 <summary>android/app/src/debug/AndroidManifest.xml</summary>
