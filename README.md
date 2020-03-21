@@ -2085,7 +2085,7 @@ Now create also `price` and `description` textFields by yourself
                       keyboardType: TextInputType.multiline,
                       focusNode: _descriptionFocusNode,
                     ),
-    </details>
+</details>
 
 ### Image Input
 Lets create `ImageInput` widget
@@ -2225,7 +2225,7 @@ Now add this code for the input ui
             }
             }
 
-    </details>
+</details>
     
 back to the form , lets add `ImageInput` under the others inputs in `ListView` children list
 ```dart
@@ -2289,7 +2289,7 @@ now we will create `_saveForm` function , it will validate our inputs and then w
             Navigator.of(context).pop();
         }
 
-    </details>
+</details>
 
 Now all left to do is to [`dispose`](https://api.flutter.dev/flutter/animation/AnimationEagerListenerMixin/dispose.html) all inputs elements with `focusNode` in `dispose` time (Called when this object is removed from the tree permanently) 
 
@@ -3363,7 +3363,7 @@ samples, guidance on mobile development, and a full API reference.
         implementation 'com.google.firebase:firebase-analytics:17.2.2'
     }
 
-    </details>
+</details>
 
 
 <details>
