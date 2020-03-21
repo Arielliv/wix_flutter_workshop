@@ -330,8 +330,9 @@ Now we have some missing widgets and screens -> lets create them.
 
 ### Items Overview Screen Widget
 Under `screens` folder, create  `items_overview_screen.dart`
-    - it will be our first `StatefulWidget` .
-if you decided to use vsCode, start writing `st` and it will suggest you whether to create `statefull` widget or `stateless` widget, pick `statefull`.
+- it will be our first `StatefulWidget`
+
+f you decided to use vsCode, start writing `st` and it will suggest you whether to create `statefull` widget or `stateless` widget, pick `statefull`.
 name the class `ItemsOverviewScreen` .
 
 ---
@@ -347,7 +348,7 @@ instade of returning `container` widget , we will return [`Scaffold`] widget (ht
 
 for now we will return scaffold with `appBar` and `body`
    - `appbar` property will be [`AppBar`](https://api.flutter.dev/flutter/material/AppBar-class.html) widget with title
-	- `title` will be using [`Text`](https://api.flutter.dev/flutter/widgets/Text-class.html) widget
+    - `title` will be using [`Text`](https://api.flutter.dev/flutter/widgets/Text-class.html) widget
 
 ```dart
 	    appBar: AppBar(
@@ -628,8 +629,8 @@ time for a bit of styling
     textColor: Theme.of(context)  .primaryTextTheme.button.color,
 ```
 We also need to handle the loading stage 
-Therefore we will need to wrapp `RaisedButton` with `if else` segment -
-if `isLoading` true then return `CircularProgressIndicator` else return `RaisedButton`
+Therefore we will need to wrapp `RaisedButton` with `if else` segment 
+- if `isLoading` true then return `CircularProgressIndicator` else return `RaisedButton`
 
 <details>
 <summary>auth button</summary>
@@ -1275,7 +1276,7 @@ they will be `Providers`
 
 ##### Item Provider
 `item` provider will represent our item data, whom will be save in our server  
-it will be `class` that uses [`ChangeNotifier`](https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html) mixin in dart you do it with `with` keyword - 
+it will be `class` that uses [`ChangeNotifier`](https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html) mixin in dart you do it with `with` keyword  
 ```dart
 class Item with ChangeNotifier
 ```
@@ -1417,7 +1418,8 @@ Don't forget to import import `items.dart`!
 until now it was just a screen widget that renders loader,
 now we will make it show our items
 
-- becasue we now going to work against the server - we will need to handle [`Future`](https://api.flutter.dev/flutter/dart-async/Future-class.html) (async code) , lets start by handling the `init` and `load` stage in `ItemsOverviewScreen`
+- becasue we now going to work against the server 
+- we will need to handle [`Future`](https://api.flutter.dev/flutter/dart-async/Future-class.html) (async code) , lets start by handling the `init` and `load` stage in `ItemsOverviewScreen`
     
  create `_isInit` and `_isLoading` vars in `_ProductsOverviewScreenState` class , both should be in initial as false
  
@@ -1453,7 +1455,7 @@ body: _isLoading
       : ItemsGrid(),
 ```
 
-Now we are geting error - it beacuse `ItemsGrid` widget is not exist, we need to create it
+Now we are geting error, it beacuse `ItemsGrid` widget is not exist, we need to create it
 
 <details>
     <summary>items_overview_screen.dart</summary>
@@ -1578,7 +1580,7 @@ In `widgets` folder we need to create `item_widget.dart`
 It will be `StatelessWidget` 
 
 #### what inside widget :
-we will need to use `Assets` so we could use Image as placeholder - lets add import in `pubspec.yaml` file 
+we will need to use `Assets` so we could use Image as placeholder -> lets add import in `pubspec.yaml` file 
 ```yaml
 assets:
  - assets/images/wix-logo.jpg
@@ -1600,10 +1602,11 @@ it will be covered with [`Hero`](https://api.flutter.dev/flutter/widgets/Hero-cl
 ```dart
 AssetImage('assets/images/wix-logo.jpg')
 ```
-	- `image` propetry will use [`FileImage`](https://api.flutter.dev/flutter/painting/FileImage-class.html) widget ,it will load the image  as [`File`](https://api.flutter.dev/flutter/dart-io/File-class.html) widget (from `dart:io`)
-	- `fit` propetry will be `BoxFit.cover`
 
--`fotter` will be [`GridTileBar`](https://api.flutter.dev/flutter/material/GridTileBar-class.html)
+- `image` propetry will use [`FileImage`](https://api.flutter.dev/flutter/painting/FileImage-class.html) widget ,it will load the image  as [`File`](https://api.flutter.dev/flutter/dart-io/File-class.html) widget (from `dart:io`)
+- `fit` propetry will be `BoxFit.cover`
+
+- `fotter` will be [`GridTileBar`](https://api.flutter.dev/flutter/material/GridTileBar-class.html)
 
 ```dart
 GridTileBar(backgroundColor: Colors.black87,
@@ -1672,7 +1675,7 @@ add route to the file , that way we could approach it
 ```dart
     static const routeName = '/item-detail';
 ```
-we will need to get the item id somehow so we could be able to show the right item data - we will use `context` for it
+we will need to get the item id somehow so we could be able to show the right item data -> we will use `context` for it
 
 when you navigate from `ItemOverviewScreen` (acutally `ItemWidget` inside of it) by clicking on the item , you can pass `arguments` to `ItemDetailScreen`
 that way we will be able to use them and get the right item data
@@ -1710,7 +1713,8 @@ we will have a new widget - [`CustomScrollView`](https://api.flutter.dev/flutter
 			- `title` will be title of the item
 			- `background` will be containing our `Hero` widget 
 				- `tag` will be with the same `tag` as in `ItemWidget` (item id)
-				- `child` will be `Image.file` - we will get the path to file from `loadedItem.image.path`  and with `fit` property as `BoxFit.cover`
+				- `child` will be `Image.file` 
+                    - we will get the path to file from `loadedItem.image.path`  and with `fit` property as `BoxFit.cover`
  
 	- [`SliverList`](https://api.flutter.dev/flutter/widgets/SliverList-class.html)  (A sliver that places multiple box children in a linear array along the main axis) will contain more details about the item 
 		- `delegate` property will be [SilverChildListDelegate](https://api.flutter.dev/flutter/widgets/SliverChildListDelegate-class.html) (A delegate that supplies children for slivers using an explicit list)
