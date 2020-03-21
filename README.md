@@ -1,5 +1,5 @@
 
-# *flutter workshop*
+# *flutter workshop* :iphone:
 
 
 ## Prerequisites
@@ -18,7 +18,17 @@
 
 By now ,you should be able to run `flutter doctor` on this project and succeed.
 
-### cheat list for VSCode
+---
+### :exclamation: note  :exclamation: 
+All along doing this workshop you'll have to use emulator - I recomand to use 
+
+***Pixel XL API 28 with Android 9.0(Google APIs)***
+
+(all this project has been tested with it)
+
+---
+
+### :computer: cheat list for VSCode :computer: :notebook:
 
 <kbd>option</kbd> <kbd>shift</kbd> <kbd>F</kbd> -> format your code
 
@@ -26,20 +36,30 @@ By now ,you should be able to run `flutter doctor` on this project and succeed.
 
 # Let's build a Image posting app
 
+- [Prerequisites](#prerequisites)
+- [Introduction](#introduction)
+- [Step One - Login And register page](#step-one---login-and-register-page)
+- [Step Two - Home Screen](#step-two---home-screen)
+- [Step Three - Add Button and Add Item Screen](#step-three---add-button-and-add-item-screen)
+- [Step Four - App Drawer](#step-four---app-drawer)
+- [Step Five - Mangeing Itemsr](#step-five---mangeing-items)
+- [Bonus Part: Step Six - Like Button](#bonus-part-like-button)
+
+
 if you still didn't create new flutter project then run `flutter create --androidx [pick a name for your app]`
 
 after it finish, try to run your new app, in vscode you can click on `debug` -> `start without debuging`
 (you can start it from the terminal by runing the command `flutter run`).
 
-### Intredaction
-At first we will have to do some setup , so our project will be ready to develop.
+### Introduction
+First we will have to do some setup , so our project will be ready to develop.
 Our app will be using google [`firebase`](https://firebase.google.com/)  for authantication, file storage and database. We won't be learning `firebase` during this workshop, you'll get code snippets for already done integration.
 
 Usually when you start to develop new app (ios or android), you get register as apple developer and register for a Google Play Developer account. Evantually you will register your app in apple store and google play store. During this workshop you wont do it , its already been enabled for you :smirk:
 
 **so lets start** :muscle:
 
-## first step - Login And register page
+## Step One - Login And Register Page
 
 First step will be to edit `pubspec.yaml` file. 
 (Every [pub package](https://dart.dev/guides/packages) needs some metadata so it can specify its [dependencies](https://dart.dev/tools/pub/glossary#dependency).)
@@ -742,7 +762,7 @@ we also want to validate the input we get
 
 now we can finnaly build our `AuthCard` widget :raised_hands:
 
-### Auth Card Widget
+### Auth Card
 Lets create the `AuthCard` widget
 In `widgets` folder we need to create `auth_card.dart`
 It will be `StatefulWidget` 
@@ -1224,7 +1244,7 @@ make sure to import `AuthCard` in `auth_screen`.
 
 now you have everything ready for try login or sign in! :raised_hands:
 
-## Second Step - Home Screen
+## Step Two - Home Screen
 
 lets start creating our home screen 
 
@@ -1379,7 +1399,7 @@ ChangeNotifierProxyProvider<Auth, Items>(
 ```
 Don't forget to import import `items.dart`!
 
-###  Refactor Items Overview Screen Widget :muscle:
+###  Refactor Items Overview Screen :muscle:
 until now it was just a screen widget that renders loader,
 now we will make it show our items
 
@@ -1464,48 +1484,44 @@ Now we are geting error - it beacuse `ItemsGrid` widget is not exist, we need to
     }
 </details>
 
-### Items Grid widget   
-Lets create the `Items` and `Item` providers
-In `providers` folder we need to create `items.dart` and `item.dart`
-they will be `Providers` 
+### Items Grid   
+Lets create `ItemsGrid` widget
+In `widgets` folder we need to create `items_grid.dart` 
+It will be `StatelessWidget` 
 
 #### what inside widget :
+Inside build function , we need to get our items from the `Items` provider context
 
+```dart
+final items = Provider.of<Items>(context).items;
+```
 
-- `ItemsGrid`
-    - lets create a file `items_grid.dart` and `StatelessWidget` and call it `ItemsGrid` and import `material.dart`
-    - inside build function ,lets get our items from the provider contex
+This time we will use [`GridView`](https://api.flutter.dev/flutter/widgets/GridView-class.html) (A scrollable, 2D array of widgets), it will take care of the layout for us.
+we will use it in it's builder way : 
+ - `itemCount` property will have how many items there are
+ - `gridDelegate` property (delegate that controls the layout of the children within the [GridView](https://api.flutter.dev/flutter/widgets/GridView-class.html)) we will pass [`SliverGridDelegateWithFixedCrossAxisCount`](https://api.flutter.dev/flutter/rendering/SliverGridDelegateWithFixedCrossAxisCount-class.html)
+- `itemBuilder` property we will need to loop over items and return `ItemWidget`
+- `padding` property will get [EdgeInsets](https://api.flutter.dev/flutter/painting/EdgeInsets-class.html).all(10.0)
 
-    ```
-    final items = Provider.of<Items>(context).items;
-    ```
-
-    - we will use another `Flutter` layout widget - `GridView` (A scrollable, 2D array of widgets)
-    - `GridView` will take care of the layout for us
-    - we will write it in builder way : 
-        - `itemCount` - we will pass how many items there are
-        - `gridDelegate` (produce an arbitrary 2D arrangement of children) - we will pass `SliverGridDelegateWithFixedCrossAxisCount`
-        - `itemBuilder` - we need to loop over items and return `ItemWidget`
-
-        ```
-        GridView.builder(
-            padding: const EdgeInsets.all(10.0),
-            itemCount: items.length,
-            itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
-                value: items[i],
-                child: Container(
-                child: ItemWidget(),
-                ),
+    ```dart
+    GridView.builder(
+        padding: const EdgeInsets.all(10.0),
+        itemCount: items.length,
+        itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
+            value: items[i],
+            child: Container(
+            child: ItemWidget(),
             ),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-            ),
-        );
-        ```
-- we get error beacuse `ItemWidget` is not exist, we need to create it
+        ),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 3 / 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+        ),
+    );
+    ```
+- we are now geting error beacuse `ItemWidget` is not exist -> so we need to create it
 
 <details>
 <summary>items_grid.dart</summary>
@@ -1542,60 +1558,53 @@ they will be `Providers`
 
 </details>
 
-- `ItemWidget`
-    - lets crate `item_widget.dart` and `StatelessWidget` named `ItemWidget` and import `material.dart`
-    - we will need to use `Assets` this time - lets add import in `pubspec.yaml` file 
-    ```
-    assets:
-     - assets/images/wix-logo.jpg
-   ```
-    - inside build function ,we will take our item from `Item` provider
+### Item Widget
+Lets create `ItemWidget` widget
+In `widgets` folder we need to create `item_widget.dart` 
+It will be `StatelessWidget` 
 
-    ```
-    final item = Provider.of<Item>(context, listen: false);
-    ```
-    - we will use now `ClipRRect` another Flutter build in widget (clips its child using a rounded rectangle, similar to `ClipOval`and `ClipPath`)
+#### what inside widget :
+we will need to use `Assets` so we could use Image as placeholder - lets add import in `pubspec.yaml` file 
+```yaml
+assets:
+ - assets/images/wix-logo.jpg
+```
+In build function ,we will get our item from `Item` provider
 
-        - we will pass it borderRadius of 10
-        - and his child will be `GridTile` which is grid tile part of `GridView` list, (we are using `GridView` in our `ItemsWidget`)
-        - now we will cover the child with `Hero` widget, so we will have a nice hero animation (A widget that marks its child as being a candidate for hero animations)
+```dart
+final item = Provider.of<Item>(context, listen: false);
+```
+we will use now [`ClipRRect`](https://api.flutter.dev/flutter/widgets/ClipRRect-class.html)  (clips its child using a rounded rectangle, similar to `ClipOval`and `ClipPath`)
 
-            - we need to add `tag` propety so it will know which widget should get the hero animation, you need to add identical tag for both of them (widget where the animation trrigers and the widget where is should haapen)
+- `borderRadius` property will be 10
+- `child` property will be [`GridTile`](https://api.flutter.dev/flutter/material/GridTile-class.html) which is part of `GridView` list, (we are using `GridView` in our `ItemsWidget` as you know)
+it will be covered with [`Hero`](https://api.flutter.dev/flutter/widgets/Hero-class.html) widget, so we will have a nice hero animation (A widget that marks its child as being a candidate for hero animations)
+	 - `tag`  propety will be `item.id` , so it will know which widget should get the hero animation, and we will need to add identical tag for the second `Hero` widget the same `tag` (widget where the animation trrigers and the widget where is should haapen)
 
-            - the child will be `FadeInImage` widget(An image that shows a placeholder image while the target image is loading, then fades in the new image when it loads)
-            - the palce order will be from our assets images 
-                ```
-                AssetImage('assets/images/wix-logo.jpg')```
+- `child` property will be [`FadeInImage`](https://api.flutter.dev/flutter/widgets/FadeInImage-class.html) widget (An image that shows a placeholder image while the target image is loading, then fades in the new image when it loads)
+- [`placeholder`](https://api.flutter.dev/flutter/widgets/FadeInImage/placeholder.html) proprty will be image from our assets images 
+```dart
+AssetImage('assets/images/wix-logo.jpg')
+```
+	- `image` propetry will use [`FileImage`](https://api.flutter.dev/flutter/painting/FileImage-class.html) widget ,it will load the image  as [`File`](https://api.flutter.dev/flutter/dart-io/File-class.html) widget (from `dart:io`)
+	- `fit` propetry will be `BoxFit.cover`
 
-            - image propetry : will use `FileImage` widget that will laod the image with `File` widget from `dart:io` - im port it 
+-`fotter` will be [`GridTileBar`](https://api.flutter.dev/flutter/material/GridTileBar-class.html)
 
-                ```
-                import 'dart:io';
-                .
-                .
-                .
-                .
-                FileImage(item.image)
-                .
-                .
-                .
-                ```
-            - and fit propetry `BoxFit.cover`
+```dart
+GridTileBar(backgroundColor: Colors.black87,
+    title: Text(
+        item.title,
+        textAlign: TextAlign.center,
+    ),
+)
+```
 
-        - we will add fotter and it will be `GridTileBar`
-
-            ```
-            backgroundColor: Colors.black87,
-                title: Text(
-                    item.title,
-                    textAlign: TextAlign.center,
-                ),
-            ```
-
-        now we can import `ItemWidget` in `ItemsGrid` 
+now we can import `ItemWidget` in `ItemsGrid` 
 
 <details>
     <summary>item_widget.dart</summary>
+    
     import 'dart:io';
     import 'package:flutter/material.dart';
     import 'package:provider/provider.dart';
@@ -1635,52 +1644,62 @@ they will be `Providers`
 
 </details>
 
-## item overiew screen
+### Item Details Screen
+Lets create `ItemDetailScreen` widget
+In `screens` folder we need to create `item_detail_screen.dart` 
+It will be `StatelessWidget` 
+It will show more dutails about the item
+   - bigger image
+   - details about the item
 
- - lets cretae new file `item_detail_screen.dart`
- - this widget screen will show more dutails about the item
-    - bigger image
-    - details about the item
+#### what inside widget :
+add route to the file , that way we could approach it
 
-first lets create `StatelessWidget` with name `ItemDetailScreen`
-
-- add route to the file , that way we could approach it
-
-```
+```dart
     static const routeName = '/item-detail';
 ```
+we will need to get the item id somehow so we could be able to show the right item data - we will use `context` for it
 
-- we will need to get the item id somehow so we will be able to show the right item data - so we will use `context`
-
-    - when you navigate from `ItemOverviewScreen` (acutally `ItemWidget`) by clicking on the item , you can pass `arguments` so in `ItemDetailScreen` we will be able to use them. we will pass the item Id that way.
+when you navigate from `ItemOverviewScreen` (acutally `ItemWidget` inside of it) by clicking on the item , you can pass `arguments` to `ItemDetailScreen`
+that way we will be able to use them and get the right item data
+we will pass the `item Id`
 
 lets add to `onTap` function in `ItemWidget` which will pass `argumants` - `item.id` inside:
 
-```
+```dart
     Navigator.of(context).pushNamed(
               ItemDetailScreen.routeName,
               arguments: item.id,
             );
 ```
 
- - and now, we will add to `ItemDetailScreen` a call to the `ModalRoute` , so it would be able to get the `itemId` from the arguments, then we'll use it to get the right item from `Items Provider`
+Now, we will add to `ItemDetailScreen` a call to the `ModalRoute` , so it would be able to get the `itemId` from the arguments, then we'll use it to get the right item from `Items Provider`
 
- ```
+```dart
  final itemId = ModalRoute.of(context).settings.arguments as String;
  final loadedItem = Provider.of<Items>(
       context,
       listen: false,
     ).findById(itemId);
 
- ``` 
-after getting the in fostructre ready, lets add our screen detail ui 
+``` 
+now that we got the infrastructure ready, lets add our ui for screen detail widget 
 
-- we will return `Scaffold`
-- it will contain our second part of the `Hero` animation 
-- we will have a new widget -  `CustomScrollView` (A ScrollView that creates custom scroll effects using slivers) for a cool scroll
-    - it will be divided for two parts :
-        - slivers - inside it will contain `SliverAppBar` (A material design app bar that integrates with a CustomScrollView). which be containing our `Hero` widget as `background`, with title of the item
-        - SliverList - which will contin more details about the item 
+It  will return `Scaffold`
+It will contain our second part of the `Hero` animation 
+we will have a new widget - [`CustomScrollView`](https://api.flutter.dev/flutter/widgets/CustomScrollView-class.html) (A ScrollView that creates custom scroll effects using slivers) for a cool scroll
+- `slivers` property will contain 
+	- [`SliverAppBar`](https://api.flutter.dev/flutter/material/SliverAppBar-class.html) (A material design app bar that integrates with a CustomScrollView).  
+		- `expandedHeight` will be 300
+		- `pinned` will be true
+		- `flexibleSpace` will be [`FlexibleSpaceBar`](https://api.flutter.dev/flutter/material/FlexibleSpaceBar-class.html)
+			- `title` will be title of the item
+			- `background` will be containing our `Hero` widget 
+				- `tag` will be with the same `tag` as in `ItemWidget` (item id)
+				- `child` will be `Image.file` - we will get the path to file from `loadedItem.image.path`  and with `fit` property as `BoxFit.cover`
+ 
+	- [`SliverList`](https://api.flutter.dev/flutter/widgets/SliverList-class.html)  (A sliver that places multiple box children in a linear array along the main axis) will contain more details about the item 
+		- `delegate` property will be [SilverChildListDelegate](https://api.flutter.dev/flutter/widgets/SliverChildListDelegate-class.html) (A delegate that supplies children for slivers using an explicit list)
 
 <details>
     <summary>UI</summary>
@@ -1745,8 +1764,8 @@ after getting the in fostructre ready, lets add our screen detail ui
 
  <details>
  <summary>item_detail_screen.dart</summary>
- import 'dart:io';
-
+ 
+	import 'dart:io';
     import 'package:flutter/material.dart';
     import 'package:provider/provider.dart';
 
@@ -1822,13 +1841,16 @@ after getting the in fostructre ready, lets add our screen detail ui
 
  </details>
 
-## Add Button and Add Item Screen
+## Step Three - Add Button and Add Item Screen
 
-- lets add add button to our main screen `ItemsOverviewScreen` 
-- in `Scaffold` we need to add another property `floatingActionButton`, inside of it we will use `FloatingActionButton` widget 
-    - in `onPressed` function we will have navigation to our new widget `addItem` - `AddItemScreen.routeName`
 
-```
+###  Refactor Items Overview Screen :muscle:
+Lets add add button to our main screen `ItemsOverviewScreen`
+ 
+In `Scaffold` we need to add another property `floatingActionButton`, inside of it we will use [`FloatingActionButton`](https://api.flutter.dev/flutter/material/FloatingActionButton-class.html) widget 
+- we will have in `onPressed` property function which will have navigation to our new widget `addItemScreen` widget
+
+```dart
 floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).pushNamed(AddItemScreen.routeName);
@@ -1838,23 +1860,28 @@ floatingActionButton: FloatingActionButton(
       ),
 ```  
 
-- lets create `AddItemScreen` - create file `add_item_screen.dart`
-- it will be `StatefulWidget`
-- dont forget to import `'package:flutter/material.dart'`
-- we need to add its rout to the routs in `main.dart` file
-- also we need to create  route to `addItemScreen` screen
-```
+### Add Item Screen
+Lets create `AddItemScreen` widget
+In `screens` folder we need to create `add_item_screen.dart` 
+It will be `StatefulWidget` 
+It will show more dutails about the item
+   - bigger image
+   - details about the item
+
+#### what inside widget :
+
+first lets create route to `addItemScreen` screen
+```dart
 static const routeName = '/add-item';
 ```
+and we need to add this rout to the routs in `main.dart` file
 
-- we need to add to `main.dart` route to `AddItemScreen`
-
-```
+```dart
  AddItemScreen.routeName: (ctx) => AddItemScreen(),
 ```
-- go to `items.dart` and add the code below , it would be usefull later
+Now go to `items.dart` and add the code below , it would be usefull later
 
-```
+```dart
 import 'package:path/path.dart' as path;
 ...
 ...
@@ -1897,24 +1924,25 @@ Future<void> uploadPic(File image) async {
   }
 ```
 
-- now we can start working on `AddItemScreen` logic an ui
-    - we will have a `Form` widget for the inputs (handling the input + validations)
+Now lets start working on `AddItemScreen` logic and ui
+We will have a [`Form`](https://api.flutter.dev/flutter/widgets/Form-class.html) widget for inputs which will be handling the input and its validations
 
-- Inside `_AddItemScreenState`
-- we need to create `GlobalKey` for the form state (Global keys uniquely identify elements. Global keys provide access to other objects that are associated with those elements, such as BuildContext. For StatefulWidgets, global keys also provide access to State)
-- we will have init values for the inputs and empty `Item` variable
+Inside `_AddItemScreenState`: 
+we need to create `GlobalKey` for the form state (Global keys uniquely identify elements. Global keys provide access to other objects that are associated with those elements, such as BuildContext. For StatefulWidgets, global keys also provide access to State)
+we will have init values for the inputs and also empty `Item` variable
 
-- we will use `TextFormField` widget for the simple text inputs , and for the user to jump easly between the inputs we will use `focusNode` properties, we need to initate them
-- lets add `isLoading` and `isInit` vaible also to use later
+we will use [`TextFormField`](https://api.flutter.dev/flutter/material/TextFormField-class.html) widget for the simple text inputs
+for easy navigation between the inputs will use `focusNode` properties so now we need to initate them
+Also lets add `isLoading` and `isInit` variables
 
-```
+```dart
   final _form = GlobalKey<FormState>();
   final _descriptionFocusNode = FocusNode();
 
   final _priceFocusNode = FocusNode();
   File _pickedImage;
 
-var _addItem = Item(
+  var _addItem = Item(
     id: null,
     title: '',
     price: 0,
@@ -1933,10 +1961,9 @@ var _addItem = Item(
   var _isLoading = false;
 
 ```
-- UI
-    - we will returen `Scaffold` widget 
+Now we can start working on the ui, we will return `Scaffold` widget (it will be similar to our other `Scaffold` widgets)
 
-```
+```dart
 return Scaffold(
       appBar: AppBar(
         title: Text('Add New Item'),
@@ -1962,39 +1989,41 @@ return Scaffold(
                       ....
 ```
 
-- lets add all the inputs here 
-    - form lets us use onSubmit function for all the inputs inside of it, therefore we will have in each `TextFieldInput` `onSave` function to handle it self when it got submitted
-    - also each one will have `initValue` property 
-    - `decoration` property will be his title 
-    - `onFieldSubmitted` property will be moving between inputs after submiting one
-    - `validator` will get value and check our custome ruls about it 
+Now we can start adding the inputs widgets 
 
-    ```
-    TextFormField(
-                      initialValue: _initValues['title'],
-                      decoration: InputDecoration(labelText: 'Title'),
-                      textInputAction: TextInputAction.next,
-                      onSaved: (value) => _addItem = Item(
-                        title: value,
-                        id: _addItem.id,
-                        isFavorite: _addItem.isFavorite,
-                        price: _addItem.price,
-                        description: _addItem.description,
-                        image:
-                            _pickedImage != null ? _pickedImage : _addItem,
-                      ),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Please provide a value';
-                        }
-                        return null;
-                      },
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_priceFocusNode),
-                    ),
-    ```
+`Form` lets us use `onSubmit` function for all the inputs inside of it, therefore we will have in each `TextFieldInput` widget `onSave` function to handle it self when it got submitted
 
-    - please create also `price` and `description` textFields 
+- each input will get its own `initValue` property from `_initValues` variable
+- each input will have `decoration` property with his title 
+- `onFieldSubmitted` property will be moving focus between inputs after submiting each one
+- `validator` property will get input value and check it with our custome validation rules  
+
+```dart
+TextFormField(
+                  initialValue: _initValues['title'],
+                  decoration: InputDecoration(labelText: 'Title'),
+                  textInputAction: TextInputAction.next,
+                  onSaved: (value) => _addItem = Item(
+                    title: value,
+                    id: _addItem.id,
+                    isFavorite: _addItem.isFavorite,
+                    price: _addItem.price,
+                    description: _addItem.description,
+                    image:
+                        _pickedImage != null ? _pickedImage : _addItem,
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please provide a value';
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_priceFocusNode),
+                ),
+```
+
+Now create also `price` and `description` textFields by yourself 
 
     <details>
     <summary>inputs</summary>
@@ -2055,16 +2084,18 @@ return Scaffold(
                     ),
     </details>
 
-- now we just need to create `ImageInput`
-    - lets create new file in inputs folder we have `image_input.dart`
-    - it will be `Stateful` widget
-    - it will get `onSelectImage` function from `AddItemScreen` so it would be avialable in the form
-    - dont forget to import `import package:flutter/material.dart`
-    - we will use `image_picker` package.
-    
-    - lets create `takePicture` function , which will take picture with phone camera , and  `storedImage` variable
+### Image Input
+Lets create `ImageInput` widget
+In `inputs` folder we need to create `image_input.dart` 
+It will be `Stateful` 
+it will get `onSelectImage` function from `AddItemScreen` so it would be avialable in the form and will pass back image file
+we will use [`image_picker`](https://pub.dev/packages/image_picker) package
 
-```        
+#### what inside widget :
+
+Lets create `takePicture` function , which will take picture with phone camera , and  `storedImage` variable
+
+```dart        
          File _storedImage;
 
         _takePicture() async {
@@ -2084,44 +2115,42 @@ return Scaffold(
         }
 ```
 
-- now add this code for the ui 
+Now add this code for the input ui 
+`onPressed` will trriger `_takePicture` function , and then will update `AddItemScreen` form
 
-    ```
-        return Row(
-            children: <Widget>[
-                Container(
-                width: 150,
-                height: 100,
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.grey),
-                ),
-                child: _storedImage != null
-                    ? Image.file(
-                        _storedImage,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        )
-                    : Text(
-                        'No Image Taken',
-                        textAlign: TextAlign.center,
-                        ),
-                alignment: Alignment.center,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                child: FlatButton.icon(
-                    icon: Icon(Icons.camera),
-                    label: Text('Take picture'),
-                    textColor: Theme.of(context).primaryColor,
-                    onPressed: _takePicture,
-                ),
-                ),
-            ],
-        );
-    ```
-
-     - `onPressed` will trriger `_takePicture` function , and then will update `AddItemScreen` form
-
+```dart
+    return Row(
+        children: <Widget>[
+            Container(
+            width: 150,
+            height: 100,
+            decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.grey),
+            ),
+            child: _storedImage != null
+                ? Image.file(
+                    _storedImage,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    )
+                : Text(
+                    'No Image Taken',
+                    textAlign: TextAlign.center,
+                    ),
+            alignment: Alignment.center,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+            child: FlatButton.icon(
+                icon: Icon(Icons.camera),
+                label: Text('Take picture'),
+                textColor: Theme.of(context).primaryColor,
+                onPressed: _takePicture,
+            ),
+            ),
+        ],
+    );
+```
     <details>
     <summary>image_input.dart</summary>
 
@@ -2194,22 +2223,30 @@ return Scaffold(
             }
 
     </details>
+    
+back to the form , lets add `ImageInput` under the others inputs in `ListView` children list
+```dart
+Container(
+                  width: 100,
+                  height: 100,
+                  margin: EdgeInsets.only(top: 8, right: 10),
+                  child: ImageInput(_selectImage),
+                ),
+```
 
-    - back to the form , ltes add image input under the others inputs 
-    - and create _selectImage function
-    ```
-    Container(
-                      width: 100,
-                      height: 100,
-                      margin: EdgeInsets.only(top: 8, right: 10),
-                      child: ImageInput(_selectImage),
-                    ),
-    ```
+- we will pass as argumanet `_selectImage` function
+```dart
+void  _selectImage(File pickedImage) {
 
-    - lets create `_saveForm` function , it will validate our inputs and then will add new item to our firebase
-    - it will show loader while we are wating for response
-    - in case of error it will show `AlertDialog`
-    - after it will finish all steps it will close `AddItemScreen` (will use Navigator.of(context).pop())
+_pickedImage = pickedImage;
+
+}
+```
+now we will create `_saveForm` function , it will validate our inputs and then will add new item
+- it will show loader while we are wating for response
+- in case of error it will show [`AlertDialog`](https://api.flutter.dev/flutter/material/AlertDialog-class.html)
+- after it will finish all steps, it will close `AddItemScreen` 
+	- it will use ```Navigator.of(context).pop())``` to close screen after add new item will finish
 
     <details>
     <summary>_saveForm</summary>
@@ -2251,9 +2288,9 @@ return Scaffold(
 
     </details>
 
-- all left to so it to `dispose` all elements of focusNode in `dispose` time (Called when this object is removed from the tree permanently) 
+Now all left to do is to [`dispose`](https://api.flutter.dev/flutter/animation/AnimationEagerListenerMixin/dispose.html) all inputs elements with `focusNode` in `dispose` time (Called when this object is removed from the tree permanently) 
 
-```
+```dart
 @override
   void dispose() {
     _priceFocusNode.dispose();
@@ -2463,41 +2500,49 @@ return Scaffold(
     }
 </details>
 
-## App Drawer
+## Step Four - App Drawer
 
-so we are starting to have a lot of screens, we should make navigation between them be easy - lets make navigation menu which be `App Drawer`
+We are starting to have lots of screens, we should make navigation between them easy 
+Lets make navigation menu which would be `App Drawer`
 
-- for start it will have buttons for `Logout` and `Home` navigation
-- lets create `app_drawer.dart` in widgets folder , and create `StatelessWidget` called `AppDrawer`
-- it will return `Drawer` widget (A material design panel that slides in horizontally from the edge of a Scaffold to show navigation links in an application)
-     - inside `Drawer` we will return `Column` widget with some widgets:
-        - `AppBar` with `title` and inside it  (An app bar consists of a toolbar and potentially other widgets, such as a TabBar and a FlexibleSpaceBar. App bars typically expose one or more common actions with IconButtons which are optionally followed by a PopupMenuButton for less common operations (sometimes called the "overflow menu"))
+For now it will have buttons for `Logout` and `Home` navigation
 
-        ```
-        AppBar(
-                title: Text('Flutter Wix Workshop'),
-                automaticallyImplyLeading: false,
-            ),
-        ```
+### Image Input
+Lets create `AppDrawer` widget
+In `widgets` folder we need to create `app_drawer.dart` 
+It will be `StatelessWidget` 
+It will return [`Drawer`](https://api.flutter.dev/flutter/material/Drawer-class.html) widget (A material design panel that slides in horizontally from the edge of a Scaffold to show navigation links in an application)
 
-        - `Divider` (A thin horizontal line, with padding on either side)
-        - `ListTile` (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
-        it will contain the `Icon` ,`Text` and `onTap`.
-        - we will make two sets of `Divider` + `ListTile` for `Logout` and `Home`
-        ```
-        Divider(),
-            ListTile(
-                leading: Icon(Icons.exit_to_app),
-                title: Text('Logout'),
-                onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacementNamed('/');
-                Provider.of<Auth>(context, listen: false).logout();
-                },
-            ),
-        ```
+#### what inside widget :
+inside `Drawer` we will return `Column` widget with some widgets:
+- `AppBar` with `title` and inside it  (An app bar consists of a toolbar and potentially other widgets, such as a TabBar and a FlexibleSpaceBar. App bars typically expose one or more common actions with IconButtons which are optionally followed by a PopupMenuButton for less common operations (sometimes called the "overflow menu"))
 
-        - create one for `Home` with home icon. `onTap` will navigate to `ItemsOvwerviewScreen` (it will `pushReplacementNamed` and not just `push` the rout)
+	```dart
+	AppBar(
+	        title: Text('Flutter Wix Workshop'),
+	        automaticallyImplyLeading: false,
+	    ),
+	```
+
+- [`Divider`](https://api.flutter.dev/flutter/material/Divider-class.html) (A thin horizontal line, with padding on either side)
+- [`ListTile`](https://api.flutter.dev/flutter/material/ListTile-class.html) (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
+        it will contain the `Icon` ,`Text` and `onTap` properties
+        
+	```dart
+	Divider(),
+	    ListTile(
+	        leading: Icon(Icons.exit_to_app),
+	        title: Text('Logout'),
+	        onTap: () {
+	        Navigator.of(context).pop();
+	        Navigator.of(context).pushReplacementNamed('/');
+	        Provider.of<Auth>(context, listen: false).logout();
+	        },
+	    ),
+	```
+we will make two sets of `Divider` + `ListTile` for `Logout` and `Home`
+
+ try to create one for `Home` with home icon. `onTap` will navigate to `ItemsOvwerviewScreen` (it will `pushReplacementNamed` and not just `push` the rout)
 
 <details>
 <summary>app_drawer.dart</summary>
@@ -2542,32 +2587,56 @@ so we are starting to have a lot of screens, we should make navigation between t
     }
 </details>
 
-- now lets start using our new `AppDrawer`
-- add `appDrawer` property to `Scafolled` on top of `body` property in `itemsOverViewScreen` 
-```
+Now we can start using our new `AppDrawer`
+- In `itemsOverViewScreen` widget add our `appDrawer` widget inside `drawer` property of `Scafolled`
+
+```dart
 drawer: AppDrawer(),
 ```
 
-## Mange Items Screen
+## Step Five - Mangeing Items
 
-- lets create `mange_items_screen.dart` in screens folder , and create `StatelessWidget` called `MangeItemsScreen`
-- lets add route to it just like before
-    ```
-    static const routeName = '/user-items';
-    ```
-- in this page we will show **only** items which the logged in user created
-- we will pass `filterByUser` true to `fetchAndSetItems` function in the `items provider`
-- lets add `_refreshItems` function to our widget (Widget that builds itself based on the latest snapshot of interaction with a Future)
-    - it will trigger each time `_refreshItems` function with the `contex`
+so we can add new Item already , but what about delete it ? or maybe edit it
+we need a place to mange our items
 
+### Mange Items Screen
+Lets create `MangeItemsScreen` widget
+In `screens` folder we need to create `mange_items_screen.dart` 
+It will be `StatelessWidget` 
+In this page we will show **only** items which the logged in user created
+we will pass `filterByUser` true to `fetchAndSetItems` function in the `items provider`
 
+#### what inside widget :
+
+First lets add route to it just like before
+
+```dart
+static const routeName = '/manage-items';
 ```
+
+We need also to add the rout to `main.dart` file 
+
+```dart
+ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
+``` 
+
+
+We will use [`FutureBuilder`](https://api.flutter.dev/flutter/widgets/FutureBuilder-class.html) widget (Widget that builds itself based on the latest snapshot of interaction with a Future)
+
+Lets create `_refreshItems` function and pass it to `FutureBuilder` `future` property ,it will be triggered eachwe refresh the screen
+
+```dart
   Future<void> _refreshItems(BuildContext context) async {
     await Provider.of<Items>(context, listen: false).fetchAndSetItems(true);
   }
 ```
-- we will return `Scaffold`  widget with `AppBar`(which will contain `IconButton` with `add` icon and `onPressed` function which will navigate us to `AddItemScreen`) widget and with our `appDrawer`
-```
+
+We will return `Scaffold` widget 
+Inside it will have `AppBar` 
+- `actions` property will contain [`IconButton`](https://api.flutter.dev/flutter/material/IconButton-class.html) with `add` icon and `onPressed` function which will navigate us to `AddItemScreen`
+- `drawer` property will be with our `appDrawer` widget we created before 
+
+```dart
 appBar: AppBar(
         title: Text('Your Items'),
         actions: <Widget>[
@@ -2581,11 +2650,12 @@ appBar: AppBar(
       ),
       drawer: AppDrawer(),
 ```
-- in `body` we will have `FutureBuilder` widget 
-    - it will contain two properties : `future` and `builder`
-    - the builder will get called first when the widget is renderd(we will show `CircularProgressIndicator` widget for it) , then when the future will finish and we will get response, it will handle it, and we will get to show the items.
 
-```
+- `body` property  will have `FutureBuilder` widget which will contain two properties : `future` and `builder`
+    - `future` property will contain `_refreshItems(context)`
+    - `builder` property will get called first when the widget is renderd (we will show `CircularProgressIndicator` widget for it) , then when the future will finish and we will get response, `FutureBuilder` will handle it, and we will get to show the items.
+
+```dart
 body: FutureBuilder(
         future: _refreshItems(context),
         builder: (context, snapshot) =>
@@ -2616,39 +2686,46 @@ body: FutureBuilder(
                   ),
       ),
 ```
-- now we are missing a widget for the `items` data we have , so lets create one
-- it will be called `ManageItemView`
 
-- lets create `mange_item_view.dart` in widgets folder , and create `StatelessWidget` called `ManageItemView` 
-- it will get id, title, and image as class properties
-```
+We are missing a widget for the represent `items` data we have , so lets create one
+
+### Mange Item View
+Lets create `ManageItemView` widget
+In `widgets` folder we need to create `manage_item_view.dart` 
+It will be `StatelessWidget` 
+It will get `id`, `title`, and `image` as class properties
+
+```dart
   final String id;
   final String title;
   final File image;
 
   ManageItemView(this.id, this.title, this.image);
 ``` 
-- we will return `ListTile` widget (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
-    - it will contain `title`, `leading` and `trailing` properties
-    - `title` will be `Text` widget with the title we got 
-    - `leading` will be `CircleAvatar` widget with `backgroundImage` with the Image we got
-    - `trailing` will return `Container` widget , for now it will return empty `Row` widget
 
-    ```
-    return ListTile(
-        title: Text(title),
-        leading: CircleAvatar(
-            backgroundImage: FileImage((image)),
+#### what inside widget :
+
+It will return [`ListTile`](https://api.flutter.dev/flutter/material/ListTile-class.html) widget (A single fixed-height row that typically contains some text as well as a leading or trailing icon)
+it will contain `title`, `leading` and `trailing` properties
+ - `title` property will be `Text` widget of the title we got 
+ - `leading` property will be [`CircleAvatar`](https://api.flutter.dev/flutter/material/CircleAvatar-class.html) widget with `backgroundImage` of the Image we got
+ - `trailing` property will return `Container` widget , for now it will return empty `Row` widget
+
+```dart
+return ListTile(
+    title: Text(title),
+    leading: CircleAvatar(
+        backgroundImage: FileImage((image)),
+    ),
+    trailing: Container(
+        width: 100,
+        child: Row(
+        children: <Widget>[
+        ],
         ),
-        trailing: Container(
-            width: 100,
-            child: Row(
-            children: <Widget>[
-            ],
-            ),
-        ),
-        );
-    ```
+    ),
+    );
+```
 
 <details>
 <summary>mange_item_view.dart</summary>
@@ -2687,9 +2764,10 @@ body: FutureBuilder(
 
 </details>
 
-- lets fill up the code that missing in `MangeItemsScreen` in the `itemBuilder childern` - 
+#### Back to `MangeItemsScreen`
+Lets fill up the code that missing in `MangeItemsScreen` in the `itemBuilder childern` 
 
-```
+```dart
  ManageItemView(
         itemsData.items[i].id,
         itemsData.items[i].title,
@@ -2697,9 +2775,10 @@ body: FutureBuilder(
     ),
 ``` 
 
-- lets add button for our manage page in the `AppDrawer`, under `home` button we will add `Divider` and `ListTile` with 'Mange Items' text
+#### Back to `AppDrawer`
+Lets add button for our manage page in the `AppDrawer`, under `home` button we will add `Divider` and `ListTile` with 'Mange Items' text
 
-```
+```dart
           Divider(),
           ListTile(
             leading: Icon(Icons.edit),
@@ -2710,12 +2789,6 @@ body: FutureBuilder(
             },
           ),
 ```
-
-- and we need to add the rout to `main.dart` file 
-```
-ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
-``` 
-
 <details>
 <summary>mange_items_screen.dart</summary>
 
@@ -2784,40 +2857,41 @@ ManageItemsScreen.routeName: (ctx) => ManageItemsScreen(),
 
 </details>
 
-## Delete Item
+### Delete Item
 
-lets start with adding this code to `items.dart` which will remove items from our server
+Lets start with adding this code to `items.dart` which will remove items from our server
 
-```
+```dart
 Future<void> deleteItem(String id) async {
-    final url = '$baseUrl/items/$id.json?auth=$authToken';
-    final existingItemIndex = _items.indexWhere((item) => item.id == id);
-    var existingItem = _items[existingItemIndex];
+   final url = '$baseUrl/items/$id.json?auth=$authToken';
+   final existingItemIndex = _items.indexWhere((item) => item.id == id);
+   var existingItem = _items[existingItemIndex];
 
-    _items.removeAt(existingItemIndex);
-    notifyListeners();
+   _items.removeAt(existingItemIndex);
+   notifyListeners();
 
-    final response = await http.delete(url);
-    if (response.statusCode >= 400) {
-      _items.insert(existingItemIndex, existingItem);
-      notifyListeners();
-      throw HttpException('Could not delete item');
-    } else {
-      existingItem = null;
-    }
-  }
- ```
+   final response = await http.delete(url);
+   if (response.statusCode >= 400) {
+     _items.insert(existingItemIndex, existingItem);
+     notifyListeners();
+     throw HttpException('Could not delete item');
+   } else {
+     existingItem = null;
+   }
+ }
+```
 
-- and now lets add button in `ManageItemView` which will remove the item when clicked
-    - under `trailing -> children widgets` , we will add `IconButton` widget  who will be with icon `Icons.delete`
-    - `onPressed` will call our new function in `Items` provider , it will get `id` of item that will be removed
+Now lets add button in `ManageItemView` widget, which will remove the item when it got clicked
+- Under `trailing -> children widgets` , we will add `IconButton` widget  who will be with icon `delete`
+    - `onPressed` will call our new function in `Items` provider , it will pass `id` of item that will be removed
     - `listen: false` will get value once and ignore updates (we don't need more)
-    - in case of error we will show snackBar 
+    - in case of error we will show [`snackBar`](https://api.flutter.dev/flutter/material/SnackBar-class.html)
         - we need to get Scaffold from the context for that (under widget `build` function we will add it)
 
-        ```
-        final scaffold = Scaffold.of(context);
-        ```
+			```dart
+			final scaffold = Scaffold.of(context);
+			```
+			
 <details>
     <summary>IconButton</summary>
 
@@ -2841,15 +2915,21 @@ Future<void> deleteItem(String id) async {
 
 </details>
 
-# Bonus Part: Edit item , Like button
+# Bonus Part: Like Button
 
-## Like Button
+## Step Six - Like Button
 
-lets add like button on the item in our home screen
+we want to have new action - like an item
+It will be spread in couple of widgets
 
-- first lets add the function we need in our `Item` provider (this time not `Items` provider)
-- it will update item `isFavorite` staus in server for us
-```
+### Like Button
+
+Lets add like button on the item in our home screen
+
+first lets add the function we need in our `Item` provider (this time not `Items` provider)
+It will update item `isFavorite` staus in server for us
+
+```dart
 final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
 
   void _setFavoriteValue(bool newValue) {
@@ -2877,17 +2957,18 @@ final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
   }
 ```
 
-- lets add new button for it in `ItemWidget`
-- we need first to get `authData` from `AuthProvider` 
-    - we need to add this line of code under `build` function
-    ```
-    final authData = Provider.of<Auth>(context, listen: false);
-    ```
-- now lets add `leading` property inside our footer `GridTileBar` widget 
-- it will be `Consumer` widget , it will listen to `Item` provider
-- it will hold inside `builder` function `IconButton` which will show `Icons.favorite` or `Icons.favorite_border` (depens if its liked or not)
-- `onPressed` will trriget `toggleFavoriteStatus` function 
-    - we need to pass `authData.token` and `authData.userId`
+Lets add new button for it in `ItemWidget`
+we need first to get `authData` from `AuthProvider` 
+   - we need to add this line of code under `build` function
+		```dart
+		final authData = Provider.of<Auth>(context, listen: false);
+		```
+		
+Lets add `leading` property inside our footer [`GridTileBar`](https://api.flutter.dev/flutter/material/GridTileBar-class.html) widget 
+It will be `Consumer` widget , and it will listen to `Item` provider
+ - `builder` property will hold inside `IconButton` which will show `favorite` icaon or `favorite_border` (depens if its liked or not)
+- `onPressed` property will trriger `toggleFavoriteStatus` function 
+- we need to pass `authData.token` and `authData.userId`
 
 
 <details>
@@ -2909,40 +2990,52 @@ final String baseUrl = 'https://flutter-workshop-eef86.firebaseio.com';
 
 </details>
 
-- lets add popup manue to select ig we want to show only favorites items
-- in `ItemsOverviewScreen` we will add `actions` property in `AppBar` widget
-- we will use `PopupMenuButton` widget (Displays a menu when pressed and calls onSelected when the menu is dismissed because an item was selected. The value passed to onSelected is the value of the selected menu item)
-    - `onSelect` will get slected value and will check if `_showOnlyFavorites` should be true or false
-    - icon property will be `Icons.more_vert`
-    - itemBuilder property will be `PopupMenuItem`
-        - one will be `Only Favorites` with value of `FilterOptions.Favorites` and another one will be `Show All` with value of `FilterOptions.All`
+Lets add popup menu to select if we want to show only favorites items
+In `ItemsOverviewScreen` in `AppBar`  widget, we will add `actions` property 
+- we will use [`PopupMenuButton`](https://api.flutter.dev/flutter/material/PopupMenuButton-class.html) widget (Displays a menu when pressed and calls onSelected when the menu is dismissed because an item was selected. The value passed to onSelected is the value of the selected menu item)
 
-    - we need to add `enum FilterOptions` ,lets add it on top of our class 
-    ```
+    - `onSelect` property will get selected value and will check if `_showOnlyFavorites` should be true or false
+    - `icon` property will be `Icons.more_vert`
+
+
+- we need to add `enum FilterOptions` ,lets add it on top of our class 
+    ```dart
     enum FilterOptions { Favorites, All }
     ```
-- we need to add to `Items` provider 
-```
+    
+    - `itemBuilder` property will be array of [`PopupMenuItem`](https://api.flutter.dev/flutter/material/PopupMenuItem-class.html) widget
+        - one will be `Only Favorites` with value of `FilterOptions.Favorites` 
+        - another one will be `Show All` with value of `FilterOptions.All`
+
+- we need to add to call to`Items` provider 
+```dart
   List<Item> get favoritesItems {
     return _items.where((productItem) => productItem.isFavorite).toList();
   }
 ```
-- now lets pass _showFavorites to `ItemsGrid`
-- inside `ItemsGrid` we will add `showOnlyFavorites` property to the class
-```
+
+Now lets pass `_showFavorites` to `ItemsGrid`
+
+#### refactor Items Grid
+
+Inside `ItemsGrid` we will add `showOnlyFavorites` property to the class
+
+```dart
 final bool showOnlyFavorites;
 
 ItemsGrid(this.showOnlyFavorites);
 ```
-- now we just need to get the right product according to the `showFavorites` property 
-```
+
+We just need to get the right product according to the `showFavorites` property 
+
+```dart
 final productsData = Provider.of<Products>(context);
     final prodcuts =
         showOnlyFavorites ? productsData.favoritesItems : productsData.items;
 ```
-- now we just to update `fetchAndSetItems` at `Items` provider
+now lets just to update `fetchAndSetItems` in `Items` provider
 
-```
+```dart
 Future<void> fetchAndSetItems([bool filterByUser = false]) async {
     final filterUrl =
         filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
@@ -3007,9 +3100,7 @@ Future<void> fetchAndSetItems([bool filterByUser = false]) async {
           )
         ],
 </details>
-with this setup we can finnlly start codeing :raised_hands: 
 
-this will be helpful later.
 ## Getting Started
 
 This project is a starting point for a Flutter application.
