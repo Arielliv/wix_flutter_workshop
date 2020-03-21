@@ -18,6 +18,12 @@
 
 By now ,you should be able to run `flutter doctor` on this project and succeed.
 
+### :computer: cheat list for VSCode :computer: :notebook:
+
+<kbd>option</kbd> <kbd>shift</kbd> <kbd>F</kbd> -> format your code
+
+<kbd>control</kbd> <kbd>shift</kbd> <kbd>R</kbd> -> helps you when you need to create/change widgets 
+
 ---
 ### :exclamation: note  :exclamation: 
 All along doing this workshop you'll have to use emulator - I recomand to use 
@@ -28,17 +34,11 @@ All along doing this workshop you'll have to use emulator - I recomand to use
 
 ---
 
-### :computer: cheat list for VSCode :computer: :notebook:
-
-<kbd>option</kbd> <kbd>shift</kbd> <kbd>F</kbd> -> format your code
-
-<kbd>control</kbd> <kbd>shift</kbd> <kbd>R</kbd> -> helps you when you need to create/change widgets 
-
 # Let's build a Image posting app
 
 - [Prerequisites](#prerequisites)
 - [Introduction](#introduction)
-- [Step One - Login And register page](#step-one---login-and-register-page)
+- [Step One - Login And Register Page](#step-one---login-and-register-page)
 - [Step Two - Home Screen](#step-two---home-screen)
 - [Step Three - Add Button and Add Item Screen](#step-three---add-button-and-add-item-screen)
 - [Step Four - App Drawer](#step-four---app-drawer)
@@ -809,195 +809,197 @@ we need to add `with SingleTickerProviderStateMixin` to `_AuthCardState` so we c
   Animation<double> _opacityAnimation;
   ```
 - copy this snippet of code , look for the right place where to add `authButton`, `emailInput` and `passwordInput`, you will have to pass the right parameters
+
 <details>
 <summary>snippet</summary>
-@override
-    void initState() {
-        super.initState();
-        _controller = AnimationController(
-        vsync: this,
-        duration: Duration(
-            milliseconds: 300,
-        ),
-        );
-        _slideAnimation = Tween<Offset>(
-        begin: Offset(0, -1.5),
-        end: Offset(0, 0),
-        ).animate(
-        CurvedAnimation(
-            parent: _controller,
-            curve: Curves.easeIn,
-        ),
-        );
-
-        _opacityAnimation = Tween(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-            parent: _controller,
-            curve: Curves.easeIn,
-        ),
-        );
-    }
 
     @override
-    void dispose() {
-        super.dispose();
-        _controller.dispose();
-    }
-
-    void _showErrorDialog(String message) {
-        showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-            title: Text(
-            'An error occured',
+        void initState() {
+            super.initState();
+            _controller = AnimationController(
+            vsync: this,
+            duration: Duration(
+                milliseconds: 300,
             ),
-            content: Text(message),
-            actions: <Widget>[
-            FlatButton(
-                child: Text('Okay'),
-                onPressed: () {
-                Navigator.of(ctx).pop();
-                },
-            )
-            ],
-        ),
-        );
-    }
-
-    Future<void> _submit() async {
-        if (!_formKey.currentState.validate()) {
-        // Invalid!
-        return;
-        }
-        _formKey.currentState.save();
-        setState(() {
-        _isLoading = true;
-        });
-        try {
-        if (_authMode == AuthMode.Login) {
-            // Log user in
-            await Provider.of<Auth>(context, listen: false).login(
-            _authData['email'],
-            _authData['password'],
             );
-        } else {
-            // Sign user up
-            await Provider.of<Auth>(context, listen: false).signup(
-            _authData['email'],
-            _authData['password'],
+            _slideAnimation = Tween<Offset>(
+            begin: Offset(0, -1.5),
+            end: Offset(0, 0),
+            ).animate(
+            CurvedAnimation(
+                parent: _controller,
+                curve: Curves.easeIn,
+            ),
+            );
+
+            _opacityAnimation = Tween(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(
+                parent: _controller,
+                curve: Curves.easeIn,
+            ),
             );
         }
-        } on HttpException catch (error) {
-        var errorMessage = 'Authenticate failed';
-        if (error.toString().contains('EMAIL_EXISTS')) {
-            errorMessage = 'This email address already in use';
-        } else if (error.toString().contains('INVALID_EMAIL')) {
-            errorMessage = 'This is not a valid email address';
-        } else if (error.toString().contains('WEAK_PASSWORD')) {
-            errorMessage = 'This password is too weak';
-        } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
-            errorMessage = 'Could not find a user with that email';
-        } else if (error.toString().contains('INVALID_PASSWORD')) {
-            errorMessage = 'This is not a valid password address';
-        }
-        _showErrorDialog(errorMessage);
-        } catch (error) {
-        const errorMessage = 'Could not authenticate you. Please try again later';
-        _showErrorDialog(errorMessage);
-        }
-        setState(() {
-        _isLoading = false;
-        });
-    }
 
-    void _switchAuthMode() {
-        if (_authMode == AuthMode.Login) {
-        setState(() {
-            _authMode = AuthMode.Signup;
-        });
-        _controller.forward();
-        } else {
-        setState(() {
-            _authMode = AuthMode.Login;
-        });
-        _controller.reverse();
+        @override
+        void dispose() {
+            super.dispose();
+            _controller.dispose();
         }
-    }
 
-    void _onSaveField(String key, String value) {
-        _authData[key] = value;
-    }
-
-    @override
-    Widget build(BuildContext context) {
-        final deviceSize = MediaQuery.of(context).size;
-        return Card(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-        ),
-        elevation: 8.0,
-        child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeIn,
-            height: _authMode == AuthMode.Signup ? 320 : 260,
-            constraints:
-                BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
-            width: deviceSize.width * 0.75,
-            padding: EdgeInsets.all(16.0),
-            child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-                child: Column(
-                children: <Widget>[
-                    ##### add EmailInput ######,
-                    ##### add PasswordInput ######,
-                    AnimatedContainer(
-                    constraints: BoxConstraints(
-                        minHeight: _authMode == AuthMode.Signup ? 60 : 0,
-                        maxHeight: _authMode == AuthMode.Signup ? 120 : 0,
-                    ),
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeIn,
-                    child: SlideTransition(
-                        position: _slideAnimation,
-                        child: FadeTransition(
-                        opacity: _opacityAnimation,
-                        child: TextFormField(
-                            enabled: _authMode == AuthMode.Signup,
-                            decoration:
-                                InputDecoration(labelText: 'Confirm Password'),
-                            obscureText: true,
-                            validator: _authMode == AuthMode.Signup
-                                ? (value) {
-                                    if (value != _passwordController.text) {
-                                    return 'Passwords do not match!';
-                                    }
-                                }
-                                : null,
-                        ),
-                        ),
-                    ),
-                    ),
-                    SizedBox(
-                    height: 20,
-                    ),
-                    ##### add AuthButton ######,
-                    FlatButton(
-                    child: Text(
-                        '${_authMode == AuthMode.Login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
-                    onPressed: _switchAuthMode,
-                    padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textColor: Theme.of(context).primaryColor,
-                    ),
+        void _showErrorDialog(String message) {
+            showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                title: Text(
+                'An error occured',
+                ),
+                content: Text(message),
+                actions: <Widget>[
+                FlatButton(
+                    child: Text('Okay'),
+                    onPressed: () {
+                    Navigator.of(ctx).pop();
+                    },
+                )
                 ],
+            ),
+            );
+        }
+
+        Future<void> _submit() async {
+            if (!_formKey.currentState.validate()) {
+            // Invalid!
+            return;
+            }
+            _formKey.currentState.save();
+            setState(() {
+            _isLoading = true;
+            });
+            try {
+            if (_authMode == AuthMode.Login) {
+                // Log user in
+                await Provider.of<Auth>(context, listen: false).login(
+                _authData['email'],
+                _authData['password'],
+                );
+            } else {
+                // Sign user up
+                await Provider.of<Auth>(context, listen: false).signup(
+                _authData['email'],
+                _authData['password'],
+                );
+            }
+            } on HttpException catch (error) {
+            var errorMessage = 'Authenticate failed';
+            if (error.toString().contains('EMAIL_EXISTS')) {
+                errorMessage = 'This email address already in use';
+            } else if (error.toString().contains('INVALID_EMAIL')) {
+                errorMessage = 'This is not a valid email address';
+            } else if (error.toString().contains('WEAK_PASSWORD')) {
+                errorMessage = 'This password is too weak';
+            } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
+                errorMessage = 'Could not find a user with that email';
+            } else if (error.toString().contains('INVALID_PASSWORD')) {
+                errorMessage = 'This is not a valid password address';
+            }
+            _showErrorDialog(errorMessage);
+            } catch (error) {
+            const errorMessage = 'Could not authenticate you. Please try again later';
+            _showErrorDialog(errorMessage);
+            }
+            setState(() {
+            _isLoading = false;
+            });
+        }
+
+        void _switchAuthMode() {
+            if (_authMode == AuthMode.Login) {
+            setState(() {
+                _authMode = AuthMode.Signup;
+            });
+            _controller.forward();
+            } else {
+            setState(() {
+                _authMode = AuthMode.Login;
+            });
+            _controller.reverse();
+            }
+        }
+
+        void _onSaveField(String key, String value) {
+            _authData[key] = value;
+        }
+
+        @override
+        Widget build(BuildContext context) {
+            final deviceSize = MediaQuery.of(context).size;
+            return Card(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+            ),
+            elevation: 8.0,
+            child: AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeIn,
+                height: _authMode == AuthMode.Signup ? 320 : 260,
+                constraints:
+                    BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
+                width: deviceSize.width * 0.75,
+                padding: EdgeInsets.all(16.0),
+                child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                    child: Column(
+                    children: <Widget>[
+                        ##### add EmailInput ######,
+                        ##### add PasswordInput ######,
+                        AnimatedContainer(
+                        constraints: BoxConstraints(
+                            minHeight: _authMode == AuthMode.Signup ? 60 : 0,
+                            maxHeight: _authMode == AuthMode.Signup ? 120 : 0,
+                        ),
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeIn,
+                        child: SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                            opacity: _opacityAnimation,
+                            child: TextFormField(
+                                enabled: _authMode == AuthMode.Signup,
+                                decoration:
+                                    InputDecoration(labelText: 'Confirm Password'),
+                                obscureText: true,
+                                validator: _authMode == AuthMode.Signup
+                                    ? (value) {
+                                        if (value != _passwordController.text) {
+                                        return 'Passwords do not match!';
+                                        }
+                                    }
+                                    : null,
+                            ),
+                            ),
+                        ),
+                        ),
+                        SizedBox(
+                        height: 20,
+                        ),
+                        ##### add AuthButton ######,
+                        FlatButton(
+                        child: Text(
+                            '${_authMode == AuthMode.Login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
+                        onPressed: _switchAuthMode,
+                        padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        textColor: Theme.of(context).primaryColor,
+                        ),
+                    ],
+                    ),
+                ),
                 ),
             ),
-            ),
-        ),
-        );
-    }
-</detials>
+            );
+        }
+</details>
 
 - for the `onSave` function you will have to pass value and the right key , here is an example : 
 ```
@@ -1524,7 +1526,7 @@ we will use it in it's builder way :
 - we are now geting error beacuse `ItemWidget` is not exist -> so we need to create it
 
 <details>
-<summary>items_grid.dart</summary>
+    <summary>items_grid.dart</summary>
 
     import 'package:flutter/material.dart';
     import 'package:provider/provider.dart';
@@ -1763,7 +1765,7 @@ we will have a new widget - [`CustomScrollView`](https://api.flutter.dev/flutter
  thats it , now it suppose to work - try by clicking on the item!
 
  <details>
- <summary>item_detail_screen.dart</summary>
+    <summary>item_detail_screen.dart</summary>
  
 	import 'dart:io';
     import 'package:flutter/material.dart';
@@ -2025,8 +2027,9 @@ TextFormField(
 
 Now create also `price` and `description` textFields by yourself 
 
-    <details>
+<details>
     <summary>inputs</summary>
+
                     TextFormField(
                       initialValue: _initValues['price'],
                       decoration: InputDecoration(labelText: 'Price'),
@@ -2151,7 +2154,7 @@ Now add this code for the input ui
         ],
     );
 ```
-    <details>
+<details>
     <summary>image_input.dart</summary>
 
             import 'dart:io';
@@ -2248,7 +2251,7 @@ now we will create `_saveForm` function , it will validate our inputs and then w
 - after it will finish all steps, it will close `AddItemScreen` 
 	- it will use ```Navigator.of(context).pop())``` to close screen after add new item will finish
 
-    <details>
+<details>
     <summary>_saveForm</summary>
 
         Future<void> _saveForm() async {
@@ -2545,7 +2548,7 @@ we will make two sets of `Divider` + `ListTile` for `Logout` and `Home`
  try to create one for `Home` with home icon. `onTap` will navigate to `ItemsOvwerviewScreen` (it will `pushReplacementNamed` and not just `push` the rout)
 
 <details>
-<summary>app_drawer.dart</summary>
+    <summary>app_drawer.dart</summary>
 
     import 'package:flutter/material.dart';
     import 'package:provider/provider.dart';
@@ -2728,7 +2731,7 @@ return ListTile(
 ```
 
 <details>
-<summary>mange_item_view.dart</summary>
+    <summary>mange_item_view.dart</summary>
 
     import 'dart:io';
 
@@ -2790,7 +2793,7 @@ Lets add button for our manage page in the `AppDrawer`, under `home` button we w
           ),
 ```
 <details>
-<summary>mange_items_screen.dart</summary>
+    <summary>mange_items_screen.dart</summary>
 
     import 'package:flutter/material.dart';
     import 'package:provider/provider.dart';
@@ -2972,7 +2975,7 @@ It will be `Consumer` widget , and it will listen to `Item` provider
 
 
 <details>
-<summary>like button</summary>
+    <summary>like button</summary>
 
     leading: Consumer<Item>(
             builder: (ctx, item, child) => IconButton(
@@ -3075,7 +3078,7 @@ Future<void> fetchAndSetItems([bool filterByUser = false]) async {
 ```
 
 <details>
-<summary>PopupMenuButton</summary>
+    <summary>PopupMenuButton</summary>
 
     actions: <Widget>[
           PopupMenuButton(
@@ -3135,7 +3138,7 @@ samples, guidance on mobile development, and a full API reference.
   - side bar action button (filters) ^
 
 <details>
-<summary>android/app/src/debug/AndroidManifest.xml</summary>
+    <summary>android/app/src/debug/AndroidManifest.xml</summary>
 
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="com.example.workshop1">
@@ -3148,7 +3151,7 @@ samples, guidance on mobile development, and a full API reference.
 </details>
 
 <details>
-<summary>android/app/src/main/AndroidManifest.xml</summary>
+    <summary>android/app/src/main/AndroidManifest.xml</summary>
 
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.workshop1">
@@ -3184,7 +3187,7 @@ samples, guidance on mobile development, and a full API reference.
 
 
 <details>
-<summary>android/app/google-services.json</summary>
+    <summary>android/app/google-services.json</summary>
 
     {
     "project_info": {
@@ -3288,7 +3291,7 @@ samples, guidance on mobile development, and a full API reference.
 </details>
 
 <details>
-<summary>android/app/build.gradle</summary>
+    <summary>android/app/build.gradle</summary>
 
     def localProperties = new Properties()
     def localPropertiesFile = rootProject.file('local.properties')
@@ -3363,7 +3366,7 @@ samples, guidance on mobile development, and a full API reference.
     </details>
 
 
-    <details>
+<details>
     <summary>android/build.gradle</summary>
 
         buildscript {
@@ -3402,7 +3405,7 @@ samples, guidance on mobile development, and a full API reference.
 
 </details>
 <details>
-<summary>/android/build.gradle</summary>
+    <summary>/android/build.gradle</summary>
 buildscript {
     ext.kotlin_version = '1.3.50'
     repositories {
@@ -3438,7 +3441,7 @@ task clean(type: Delete) {
 
 </details>
 <details>
-<summary>android/app/src/main/kotlin/com/example/[projectname]/MainActivity.kt</summary>
+    <summary>android/app/src/main/kotlin/com/example/[projectname]/MainActivity.kt</summary>
 package com.example.workshop1
 
 import androidx.annotation.NonNull;
