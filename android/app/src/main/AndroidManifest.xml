@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.workshop1">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -7,7 +8,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="wix_flutter_workshop"
+        android:label="test_proj"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -27,4 +28,4 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-</manifest>
+    </manifest>
