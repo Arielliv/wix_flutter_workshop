@@ -1,25 +1,24 @@
-pre
 
 # *flutter workshop*
+
 
 ## Prerequisites
 
 - follow the instraction - https://flutter.dev/docs/get-started/install/macos (you can skip iOS setup).
-- I recommand to use VSCode - https://code.visualstudio.com/
+- For IDE I recommand to use VSCode - https://code.visualstudio.com/
     - Download flutter extention:
-     -in VSCode go to view -> Extainsions -> search for flutter -> install it
-        
-        or
+	   in VSCode go to view -> Extainsions -> search for flutter -> install it
+	        or
+	        <kbd>shift</kbd> <kbd>command</kbd> <kbd>x</kbd> -> search for flutter and install it.
+	- Also install mateirial Icon theme - <kbd>shift</kbd> <kbd>command</kbd> <kbd>x</kbd> - search for flutter and install it.
+- For phone emolator we will use android studio :
+	-  Install android studio(so you can use their emolator) - https://developer.android.com/studio/?gclid=EAIaIQobChMIpo7-tIH75QIVGODtCh127QL1EAAYASAAEgLqi_D_BwE
 
-        <kbd>shift</kbd> <kbd>command</kbd> <kbd>x</kbd> -> search for flutter and install it.
-also install mateirial Icon theme - <kbd>shift</kbd> <kbd>command</kbd> <kbd>x</kbd> - search for flutter and install it.
-- For those who forgot - Install android studio(so you can use their simulator) - https://developer.android.com/studio/?gclid=EAIaIQobChMIpo7-tIH75QIVGODtCh127QL1EAAYASAAEgLqi_D_BwE
+- now try to create new project - `flutter create --androidx [pick a name for your app]`
 
-by the end you should be able to run flutter doctor on this project and succeed.
+By now ,you should be able to run `flutter doctor` on this project and succeed.
 
-flutter create --androidx
-
-## cheat list VSCode
+### cheat list for VSCode
 
 <kbd>option</kbd> <kbd>shift</kbd> <kbd>F</kbd> -> format your code
 
@@ -27,30 +26,42 @@ flutter create --androidx
 
 # Let's build a Image posting app
 
-run `flutter create --androidx [pick a name for your app]`
+if you still didn't create new flutter project then run `flutter create --androidx [pick a name for your app]`
 
-after it finish, try to run your new app,in vscode you can click on `debug` -> `start without debuging`
+after it finish, try to run your new app, in vscode you can click on `debug` -> `start without debuging`
 (you can start it from the terminal by runing the command `flutter run`).
+
+### Intredaction
+At first we will have to do some setup , so our project will be ready to develop.
+Our app will be using google [`firebase`](https://firebase.google.com/)  for authantication, file storage and database. We won't be learning `firebase` during this workshop, you'll get code snippets for already done integration.
+
+Usually when you start to develop new app (ios or android), you get register as apple developer and register for a Google Play Developer account. Evantually you will register your app in apple store and google play store. During this workshop you wont do it , its already been enabled for you :smirk:
+
+**so lets start** :muscle:
 
 ## first step - Login And register page
 
-- first step will be to edit `pubspec.yaml` file. 
+First step will be to edit `pubspec.yaml` file. 
+(Every [pub package](https://dart.dev/guides/packages) needs some metadata so it can specify its [dependencies](https://dart.dev/tools/pub/glossary#dependency).)
 this file is like package.json in node. 
-Every `pub package` needs some metadata so it can specify its `dependencies`. you add some pub packges so we coul use them later. 
+You about to add some pub packges in the near future so get ready. 
 
 add this piece of code to `pubspec.yaml` file, under this lines :
-```
+
+```yaml
 dependencies:
   flutter:
     sdk: flutter
 ```
 
-### note :exclamation: 
+---
+### :exclamation: note  :exclamation: 
 The indention is realy importent here!
-keep all the packes in same space line as `flutter` packege is.
+keep all the packges in same space line as `flutter` packege is.
 
+---
 
-```javascript
+```yaml
 provider: ^3.1.0
 intl: ^0.16.0
 http: ^0.12.0+2
@@ -60,15 +71,22 @@ path_provider: ^1.4.4
 firebase_storage: ^3.1.0
 ```
 
-- lets create some folders 
+### project stacture
+Lets create some folders, to make our future app arrageable and accsesible. 
 our main workplace folder will be `lib`.
-we can create all `dart` file under it , but we will prefer to make some sub folders, to make it easier and cleaner.
+we could create all of our `dart` files under it, but we will prefer to make some sub folders, to make it easier and cleaner.
 
-lets make `screens`, `widgets`, `models` and `providers`.
+So lets make `screens`, `widgets`, `models` and `providers` folders under `lib` folder.
 
-now under `models` folder we need to create `http_exception.dart` file and copy this inside :
+---
+### :exclamation: note  :exclamation: 
+any dart file we will create in our project will be in **`snake-case`**
 
-```
+---
+
+now under `models` folder we need to create `http_exception.dart` file and copy this code inside :
+
+```dart
 class HttpException implements Exception{
   final String message;
   
@@ -78,13 +96,12 @@ class HttpException implements Exception{
   String toString() {
     return message;
   }
-
 }
 ```
 
-also we need to create under `providers` folder , we need to create `auth.dart` which will have out login, signin and logut logic: 
+Also under `providers` folder , we need to create `auth.dart` which will have our `Login`, `Signin` and `Logout` logic: 
 
-```
+```dart
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
@@ -217,13 +234,14 @@ class Auth with ChangeNotifier {
 }
 ```
 
-and now we will change our `main.dart` file, this file controls our app `theme` , app `font` also page lending, and routs.its basiclly runs our entire app.
+Now we will change our `main.dart` file, this file controls our app `theme` , app `font` , page lending and our app `routs`. Its basiclly controlls our entire app.
 
-until now we had deafult config from what `flutter create` made for us, lets change it.
+Until now we had deafult config from what `flutter create` made for us,it's time to change it.
+
 we will change `MyApp` class
 we can delete `MyHomePage` and `_MyHomePageState`
 
-```
+```dart
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -258,36 +276,57 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-please make sure you have both of this lines in top of the page:
-
-```
+Please make sure you have both of this lines in top of the page:
+```dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 ```
 
+---
+### :exclamation: note  :exclamation: 
+You'll gonna see this import in almost every file in our app
+```dart
+import 'package:flutter/material.dart';
+```
 
-now we have some missing widgets and screens -  lets create them.
+Its a Flutter widgets implementing Material Design package.
+[material.dart package](https://api.flutter.dev/flutter/material/material-library.html) gives us accsses to lots of ready to use widgets (both for ios and android)
 
-- create under `screens` folder `Items_overview_screen.dart`
-    - we will create our first `StatefulWidget` .
-    if you are using vsCode, start writing st and it will suggest you whether to create statefull widget or stateless widget, pick statefull.
-    name the class `ItemsOverviewScreen` .
-    make sure to import `material.dart`, we will need to use it widgets.
+---
 
-    instade of returning `container` widget , we will return `Scaffold`. (This widget provides APIs for showing drawers, snack bars, and bottom sheets)
-    for now we will returen scaffold with `appBar` and `body`.
-    - the app bar we will be `AppBar` widget with title.
-    the title will be using `Text` widget.
+Now we have some missing widgets and screens -> lets create them.
 
-    ```
-    appBar: AppBar(
-        title: Text('Flutter Workshop'),
-      ),
-    ```
+### Items Overview Screen Widget
+Under `screens` folder, create  `items_overview_screen.dart`
+    - it will be our first `StatefulWidget` .
+if you decided to use vsCode, start writing `st` and it will suggest you whether to create `statefull` widget or `stateless` widget, pick `statefull`.
+name the class `ItemsOverviewScreen` .
 
-    - the body will be  `CircularProgressIndicator`, ui widget which we can use for loader for now.
-(A material design circular progress indicator, which spins to indicate that the application is busy). we also will want our `body` to be center , therfore we will return the `CircularProgressIndicator` inside `Center` widget
-    ```
+---
+### :exclamation: note  :exclamation: 
+
+any dart class we will create in our project will be in **`camel-case`**
+
+---
+
+make sure to import `material.dart`, we will need to use it's widgets.
+instade of returning `container` widget , we will return [`Scaffold`] widget (https://api.flutter.dev/flutter/material/Scaffold-class.html) 
+(This widget provides APIs for showing `drawers`, `snack bars`, and `bottom sheets`)
+
+for now we will return scaffold with `appBar` and `body`
+   - `appbar` property will be [`AppBar`](https://api.flutter.dev/flutter/material/AppBar-class.html) widget with title
+	- `title` will be using [`Text`](https://api.flutter.dev/flutter/widgets/Text-class.html) widget
+
+```dart
+	    appBar: AppBar(
+	        title: Text('Flutter Workshop'),
+	      ),
+```
+
+   - `body` property will be for now [`CircularProgressIndicator`](https://api.flutter.dev/flutter/material/CircularProgressIndicator-class.html), ui widget which we can use for loader for now.
+(A material design circular progress indicator, which spins to indicate that the application is busy). we will also want our `body` to be center , therfore we will return the `CircularProgressIndicator` inside [`Center`](https://api.flutter.dev/flutter/widgets/Center-class.html) widget
+    
+    ```dart
     body: Center(
         child: CircularProgressIndicator(),
       ),
@@ -295,8 +334,8 @@ now we have some missing widgets and screens -  lets create them.
 
 it suppose to look like this :
 
-    ```
-    return Scaffold(
+```dart
+   return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Workshop'),
       ),
@@ -304,97 +343,114 @@ it suppose to look like this :
         child: CircularProgressIndicator(),
       ),
     );
-    ```
-
-now in our `main.dart` file we can use our freash widget. we just need to import it at the top of the page - 
+```
+In `main.dart` file we can use our new widget. we just need to import it at the top of the page :
 ```
 import './screens/Items_overview_screen.dart';
 ``` 
 
-now lets create the `splash_screen`
-- in `screens` folder we need to create `splash_screen.dart`
-- this widget will be stateless widget.
-- again we will return `Scaffold` widget which will contain body property with `Center` widget and `Text` widget inside of it , with ''Loading...'' as text.
-- afterwords add 
-    ```
-    import './screens/splash_screen.dart';
-    ```
-    to `main.dart` file
+### Splash Screen Widget
+Lets create the `splash_screen` widget
+In `screens` folder we need to create `splash_screen.dart`
+It will be `stateless` widget.
 
-    <details>
-    <summary>splash_screen</summary>
+#### what inside widget :
+we will return `Scaffold` widget 
+ - `body` property will be `Center` widget and `Text` widget inside of it , with ''Loading...'' as text
+ back in `main.dart` we will import it at the top of the page :
+```
+ import './screens/splash_screen.dart';
+```
 
-    ```
-    import 'package:flutter/material.dart';
+<details>
+		<summary>splash_screen.dart</summary>
+	
+	import 'package:flutter/material.dart';
 
-    class SplashScreen extends StatelessWidget {
-    @override
-    Widget build(BuildContext context) {
-        return Scaffold(
-        body: Center(
-            child: Text('Loading...'),
-        ),
-        );
-    }
-    }
-    ```
-    </details>
+	class SplashScreen extends StatelessWidget {
+	
+	@override
+	Widget build(BuildContext context) {
+	    return Scaffold(
+	    body: Center(
+	        child: Text('Loading...'),
+			    ),
+		    );
+		}
+	}
+</details>
 
-now lets create the `auth_screen`
-- it will be `StatelessWidget`
-- dont forget to import `'package:flutter/material.dart'`
-- it will return `Scaffold`. As you can see , each screen return `Scaffold` widget.
-- we will use `Stack` widget (This widget is useful if you want to overlap several children in a simple way, for example having some text and an image, overlaid with a gradient and a button attached to the bottom). we will make the first widget `Stack` a continer , and the second  `SingleChildScrollView`
-- `SingleChildScrollView` is used when we want to enable scrolling over a widget (A box in which a single widget can be scrolled)
-- inside `SingleChildScrollView` we will use `Continer` as child , and this time we will have to give it `height` and `width` properties beacuse its inside a `Stack`.
-- we don't want to give it a fixed size like hight :50, width: 50, it maybe good for our spesific simulator , but we got tons of diffrent phones sizes. 
-- we will use `context` to get th simulator size. inside `Build` function we will add this code : 
-    ```
-    final deviceSize = MediaQuery.of(context).size;
-    ```  
-- now we can use `deviceSize` 
-    ```
-    height: deviceSize.height,
-    width: deviceSize.width,
-    ```
-- inside child propery we will add `Column` widget (A widget that displays its children in a vertical array).
-- we will want to center our login/sing in widget, therefoe we will add
-    ```
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    ```
-- now lets use `Flexible` widget which will be evantually title for our auth screen. it will have `Container` as a child.(Flexible is a widget that controls how a child of a Row, Column, or Flex flexes.Using a Flexible widget gives a child of a Row, Column, or Flex the flexibility to expand to fill the available space)
+### Auth Screen Widget
+Lets create the `auth_screen` widget
+In `screens` folder we need to create `auth_screen.dart`
+It will be `StatelessWidget`
+Don't forget to import `'package:flutter/material.dart'`
+It will return `Scaffold`
 
-- lets add some ui stuff to the `Container`  
-    ``` 
-    margin: EdgeInsets.only(bottom: 20.0),
-    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
-    decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white70,
-        boxShadow: [
-            BoxShadow(
-            blurRadius: 8,
-            color: Colors.black26,
-            offset: Offset(0, 2),
-            )
-        ],
-    ),
-    ```
-- the child widget will be `Text`, with 'Workshop' as text,
-- also lets add the style property , with `TextStyle` widget inside.
-    - we will use color from our `theme`, we will get it again from `context`, like this: 
-    ```
-    color: Theme.of(context).accentTextTheme.title.color
-    ```
-    we also want to add font style -
-    ```
-    fontSize: 42,
-    fontFamily: 'Anton',
-    fontWeight: FontWeight.normal,
-    ```
+***As you can see , each screen widget returns `Scaffold` widget***
 
-- now back to `Column -> children array` , lets add another `Flexible`. it will have two properties:
+#### what inside widget :
+- we will use [`Stack`](https://api.flutter.dev/flutter/widgets/Stack-class.html) widget (This widget is useful if you want to overlap several children in a simple way, for example having some text and an image, overlaid with a gradient and a button attached to the bottom)
+Inside the `Stack` widget: 
+	1. we will have  a `Continer`
+	2. [`SingleChildScrollView`](https://api.flutter.dev/flutter/widgets/SingleChildScrollView-class.html) (is used when we want to enable scrolling over a widget (A box in which a single widget can be scrolled))
+		- inside `SingleChildScrollView` we will use `Continer` as child , and this time we will have to give it `height` and `width` properties beacuse its inside a `Stack`.
+		 we don't want to give it a fixed size like `hight :50, width: 50`
+		  it maybe good for our spesific simulator , but we got tons of diffrent phones sizes. 
+		 
+			 we will use `context` to get th simulator size. 
+			inside `Build` function we will add this code : 
+				```dart
+				final deviceSize = MediaQuery.of(context).size;
+				```
+		  
+				now we can use `deviceSize` as height and width
+				```dart
+				height: deviceSize.height,
+				width: deviceSize.width,
+				```
+			  
+		- `child` propery will be a [`Column`](https://api.flutter.dev/flutter/widgets/Column-class.html) widget (A widget that displays its children in a vertical array).
+		- we will want to center our login/sing in widget, therefoe we will add `mainAxisAlignment` and `crossAxisAlignment` properties to our `Column` widgewt
+		    ```dart
+		    mainAxisAlignment: MainAxisAlignment.center,
+		    crossAxisAlignment: CrossAxisAlignment.center,
+		    ```
+		- now lets use [`Flexible`](https://api.flutter.dev/flutter/widgets/Flexible-class.html) widget which evantually will be title for our auth screen (Flexible is a widget that controls how a child of a Row, Column, or Flex flexes.Using a Flexible widget gives a child of a Row, Column, or Flex the flexibility to expand to fill the available space) 
+			- It will have `Container` as a child
+
+			- Lets add some style properties to the `Container` widget  
+			    ``` 
+			    margin: EdgeInsets.only(bottom: 20.0),
+			    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
+			    decoration: BoxDecoration(
+			        borderRadius: BorderRadius.circular(20),
+			        color: Colors.white70,
+			        boxShadow: [
+			            BoxShadow(
+			            blurRadius: 8,
+			            color: Colors.black26,
+			            offset: Offset(0, 2),
+			            )
+			        ],
+			    ),
+			    ```
+			- The child widget of `Container` will be `Text`, with 'Workshop' as text,
+				- Lets add the style property , with `TextStyle` widget inside.
+			    - we will use color from our `theme` (which can be found in `main.dart` file), we can get it from `context`, like this: 
+				    ```
+				    color: Theme.of(context).accentTextTheme.title.color
+				    ```
+			    - we also want to add a bit of font style
+				    ```
+				    fontSize: 42,
+				    fontFamily: 'Anton',
+				    fontWeight: FontWeight.normal,
+				    ```
+
+- now back to `Column` widget 
+- `children` property is array , lets add another `Flexible` widget to it.
+it will have two properties:
     ```
     flex: deviceSize.width > 600 ? 2 : 1,
     child: AuthCard(),
@@ -473,25 +529,28 @@ now lets create the `auth_screen`
     }
 </details>
 
-- now we can add `auth_screen` import in `main.dart` file
+now we can import `auth_screen`  in top of `main.dart` file
 ```
 import './screens/auth_screen.dart';
 ```
 
-now we need to create `AuthCard` widget
-- in `widgets` folder we will create `auth_card.dart`, `auth_button.dart` and `inputs` folder
+### auth button
+Lets create the `AuthButton` widget
+In `widgets` folder we need to create `autn_button.dart`
+It will be `StatelessWidget`
 
-## auth button
-- lets create `StatelessWidget` named as `AuthButton`
-- this time it will pass parameters to the widget `isLoading`,`authMode` and `onSubmit` (just like props in react)
-- we will create properties in `AuthButton` class , and they will be `final` (its a `StatelessWidget`, once it renders it wont change under any circumstances).
-    example :
-    ```
-    class AuthButton extends StatelessWidget {
-    final bool isLoading;
-    ```
-- `authMode` will be of type `AuthMode`, and `onSubmit` will be type of `Function`
-- we need create Constructor with named parameters
+#### what inside widget :
+we will be passing parameters to the widget :
+`isLoading`,`authMode` and `onSubmit` (just like props in react).
+ for that we will need to create properties in `AuthButton` class , and they will be `final` (it's a `StatelessWidget`, once it renders, his properties won't change under any circumstances).
+   ```dart
+   class AuthButton extends StatelessWidget {
+   final bool isLoading;
+   ```
+ - `authMode` will be in type of  `AuthMode`
+ - `onSubmit` will be type of `Function`
+	 
+ we will create Constructor function with named parameters
 ```
 AuthButton(
     {@required this.isLoading,
@@ -507,7 +566,7 @@ AuthButton(
         @required this.authMode,
         @required this.onSubmit);
 ```
-but then the order of the parameters will be importent, and you wont get the benefits of named parameters.
+but then the order of the parameters will be importent, it less convenient while we can enjoy the benefits of named parameters in dart.
 
 ```
 
@@ -517,14 +576,17 @@ VS
 
 AuthButton(isLoading: false, authMode: authMode, onSubmit: () =>{}))
 ```
-- inside build method we will return `RaisedButton` (A material design "raised button").
 
-- in child propety will have `Text`, it will have to modes `login` and `sign in` - 
-```
-Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
-```
-- `onPress` will have `onSubmit` function we got
-- time for styling 
+Inside build method we will return [`RaisedButton`](https://api.flutter.dev/flutter/material/RaisedButton-class.html) (A material design "raised button").
+
+- `child` propety will have `Text`, it will have to two modes : `login` and `sign up` 
+
+	```dart
+	Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
+	```
+- `onPress` property will be `onSubmit`, the function we got in our parameters
+
+time for a bit of styling 
 ```
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(30),
@@ -533,7 +595,9 @@ Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
     color: Theme.of(context).primaryColor,
     textColor: Theme.of(context)  .primaryTextTheme.button.color,
 ```
-- we also want to handle loading stage , so we need to wrapp RaisedButton with `if else` segment. if `isLoading` true then return `CircularProgressIndicator` else return `RaisedButton`
+We also need to handle the loading stage 
+Therefore we will need to wrapp `RaisedButton` with `if else` segment -
+if `isLoading` true then return `CircularProgressIndicator` else return `RaisedButton`
 
 <details>
 <summary>auth button</summary>
@@ -570,23 +634,28 @@ Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
     }
 </details>
 
-## inputs
-### email input
-- in `inputs` folder , lets create `email_input.dart` file
-- it will be `StatelessWidget` which gets `onSaved` function
-- we will return `TextFormField` widget (This is a convenience widget that wraps a TextField widget in a FormField).
-- In decoretion property we will use `InputDecoration` with`labelText` of 'E-Mail'
-- keyboardType will be `TextInputType.emailAddress`
-- we will also want to validate it - in `validator` property we will have this code : 
-    ```
+### Inputs - Email Input
+Lets create the `EmailInput` widget
+In `inputs` folder we need to create `email_input.dart`
+It will be `StatelessWidget` which gets `onSaved` function
+
+#### what inside widget :
+It will return [`TextFormField`](https://api.flutter.dev/flutter/material/TextFormField-class.html) widget (This is a convenience widget that wraps a TextField widget in a FormField).
+- `decoretion` property we will use [`InputDecoration`](https://api.flutter.dev/flutter/material/InputDecoration-class.html) 
+	- `labelText` will be of 'E-Mail'
+- `keyboardType` propetry will be `TextInputType.emailAddress`
+
+we also want to validate the input we get 
+- `validator` property will have this code : 
+    ```dart
     validator: (value) {
                 if (value.isEmpty || !value.contains('@')) {
                     return 'Invalid email!';
                 }
                 },
     ```
-- onSaved will pass the value
-    ```
+- `onSaved` will pass the value to `onSave` function we got
+    ```dart
     onSaved: (value) => onSaved(value));
     ```
 
@@ -616,29 +685,31 @@ Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
 
 </details>
 
-### password input
-- in `inputs` folder , lets create `password_input.dart` file
-- it will be really similar to email input
-- it will be `StatelessWidget` which gets `onSaved` function and `controller` type of `TextEditingController`
-- we will return `TextFormField` widget.
-- In decoretion property we will use `InputDecoration` with`labelText` of 'Password'
-- it will have controller which will handle the updating 
-    ```
+### Inputs - Password Input
+Lets create the `PasswordInput` widget
+In `inputs` folder we need to create `password_input.dart`
+It will be `StatelessWidget` which gets `onSaved` function and `controller` type of [`TextEditingController`](https://api.flutter.dev/flutter/widgets/TextEditingController-class.html)
+
+#### what inside widget :
+We will return `TextFormField` widget.
+- `decoretion` property we will use [`InputDecoration`](https://api.flutter.dev/flutter/material/InputDecoration-class.html) 
+	- `labelText` will be of 'Password'
+- `obscureText` will be true
+- `controller` will handle the updating 
+    ```dart
     obscureText: true,
     controller: controller,
     ```
-- we will also want to validate it - in `validator` property we will have this code : 
-    ```
+we also want to validate the input we get 
+- `validator` property will have this code : 
+    ```dart
     validator: (value) {
         if (value.isEmpty || value.length < 5) {
           return 'Password is too short!';
         }
       },
     ```
-- onSaved will trigger the `onSave` function
-    ```
-    onSaved
-    ```
+- `onSaved` will trigger the `onSave` function we got
 
 <details>
 <summary>password_input.dart</summary>
@@ -669,20 +740,40 @@ Text(authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
 
 </details>
 
-and now finnely we can create the `auth_card.dart` file
+now we can finnaly build our `AuthCard` widget :raised_hands:
 
-### auth_card
+### Auth Card Widget
+Lets create the `AuthCard` widget
+In `widgets` folder we need to create `auth_card.dart`
+It will be `StatefulWidget` 
 
-- it will be `StatefulWidget`
-- add under `class AuthCard` 
+#### what inside widget :
+
+- make sure to import 
+    ```dart
+    import 'dart:io';
+
+    import 'package:flutter/material.dart';
+    import 'package:provider/provider.dart';
     ```
-    const AuthCard({
+---
+### :exclamation: note  :exclamation: 
+
+[dart:io](https://api.dart.dev/stable/2.7.1/dart-io/dart-io-library.html) is a library that allows you to work with files, directories, sockets, processes, HTTP servers and clients, and more.
+[provider](https://pub.dev/packages/provider) (A mixture between dependency injection (DI) and state management, built with widgets for widgets) we will use it as our state managment in our project
+
+---
+
+Under `class AuthCard`  add this line of code: 
+```dart
+  const AuthCard({
     Key key,
   }) : super(key: key);
-    ```
-- add `with SingleTickerProviderStateMixin` to `_AuthCardState` so we could to enable useage of `animationController` in `state`
-- create properties od class : 
-    ```
+```
+we need to add `with SingleTickerProviderStateMixin` to `_AuthCardState` so we could to enable useage of `animationController` in `state` part
+
+- lets add some properties for our class to enable useage of our widgets: 
+    ```dart
     final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
 
@@ -698,22 +789,9 @@ and now finnely we can create the `auth_card.dart` file
   Animation<double> _opacityAnimation;
   ```
 - copy this snippet of code , look for the right place where to add `authButton`, `emailInput` and `passwordInput`, you will have to pass the right parameters
-- for the `onSave` function you will have to pass value and the right key , example : 
-```
-(value) => _onSaveField('password', value)
-```
-- make sure to import 
-    ```
-    import 'dart:io';
-
-    import 'package:flutter/material.dart';
-    import 'package:provider/provider.dart';
-    ```
-
-snippet :
-
-```
-    @override
+<details>
+<summary>snippet</summary>
+@override
     void initState() {
         super.initState();
         _controller = AnimationController(
@@ -899,7 +977,12 @@ snippet :
         ),
         );
     }
-  ```
+</detials>
+
+- for the `onSave` function you will have to pass value and the right key , here is an example : 
+```
+(value) => _onSaveField('password', value)
+```
 
 <details>
     <summary>auth_card.dart</summary>
@@ -1136,58 +1219,61 @@ snippet :
     }
 
 </details>
-- make sure to import `AuthCard` in `auth_screen`.
 
-now you have everything to login or sign in! 
+make sure to import `AuthCard` in `auth_screen`.
 
-## home screen
+now you have everything ready for try login or sign in! :raised_hands:
 
-lets start creating our home screen :raised_hands:
+## Second Step - Home Screen
+
+lets start creating our home screen 
 
 1. we need to create 2 new providers : `item` and `items`
-2. we need to refactor our `items_overview_screen`
-3. we need to create new widget `items_grid`
+2. we need to refactor our `ItemsOverviewScreen`
+3. we need to create new widget `ItemsGrid`
 
-- under providers directory , cereate `items.dart` and `item.dart` 
+### Items and Item Providers  
+Lets create the `Items` and `Item` providers
+In `providers` folder we need to create `items.dart` and `item.dart`
+they will be `Providers` 
 
-- `item` provider will represent our item whom will be save in our server  
-it will be `class` that uses `ChangeNotifier` mixin 
-    in dart you do it with `with` keyword - 
-    
-    ```
-    class Item with ChangeNotifier
-    ```
+#### what inside providers :
 
-    it will have those properties:  
-    ```
-    final String id;
-    final String title;
-    final String description;
-    final double price;
-    final File image;
-    bool isFavorite;
-    ```
-    
-    make sure to import `foundation.dart` and import `material.dart` from flutter
+##### Item Provider
+`item` provider will represent our item data, whom will be save in our server  
+it will be `class` that uses [`ChangeNotifier`](https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html) mixin in dart you do it with `with` keyword - 
+```dart
+class Item with ChangeNotifier
+```
+it will have those properties:  
 
-    ```
-    import 'package:flutter/foundation.dart';
-    import 'package:flutter/material.dart';
-    import 'dart:io';
-    ```
+```dart
+final String id;
+final String title;
+final String description;
+final double price;
+final File image;
+bool isFavorite;
+```  
+make sure to import [`foundation.dart`](https://api.flutter.dev/flutter/foundation/foundation-library.html) and import `material.dart` from flutter
 
-    - we will need to create a constractor function
-    
-    ```
-    Item({
-        @required this.id,
-        @required this.title,
-        @required this.description,
-        @required this.price,
-        this.imagePath,
-        this.isFavorite = false,
-    });
-  ```
+```dart
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'dart:io';
+```
+we will need to create a constractor function with `named paramters` 
+
+```dart
+Item({
+    @required this.id,
+    @required this.title,
+    @required this.description,
+    @required this.price,
+    this.imagePath,
+    this.isFavorite = false,
+});
+```
 
 <details>
     <summary>item.dart</summary>
@@ -1215,9 +1301,12 @@ it will be `class` that uses `ChangeNotifier` mixin
 
 </details>
 
-- `items` provider will hold all of our `crud` logic against the server
-- we will use `auth` and `user` that we got when we loged in , so we will have permissions over the items
-- copy the code from here :arrow_down:
+##### Items Provider
+`items` provider will hold all of our `CRUD` (create, read, update, delete) logic against our server
+
+we will be useing `auth` and `user` that we got when we loged in, that way we could have permissions over the each item
+
+copy the code from here :arrow_down:
 
 <details>
     <summary>items.dart</summary>
@@ -1278,62 +1367,59 @@ it will be `class` that uses `ChangeNotifier` mixin
 
 </details>
 
-- please add this lines of code to `main.dart` file inside `providers` array
+now add this lines of code to `main.dart` file inside `providers` array
+```dart
+ChangeNotifierProxyProvider<Auth, Items>(
+        builder: (ctx, auth, prevpItems) => Items(
+            auth.token,
+            auth.userId,
+            prevpItems == null ? [] : prevpItems.items,
+        ),
+        ),
+```
+Don't forget to import import `items.dart`!
+
+###  Refactor Items Overview Screen Widget :muscle:
+until now it was just a screen widget that renders loader,
+now we will make it show our items
+
+- becasue we now going to work against the server - we will need to handle [`Future`](https://api.flutter.dev/flutter/dart-async/Future-class.html) (async code) , lets start by handling the `init` and `load` stage in `ItemsOverviewScreen`
     
-    ```
-    ChangeNotifierProxyProvider<Auth, Items>(
-            builder: (ctx, auth, prevpItems) => Items(
-                auth.token,
-                auth.userId,
-                prevpItems == null ? [] : prevpItems.items,
-            ),
-            ),
-    ```
-    - and import import `items.dart`
+ create `_isInit` and `_isLoading` vars in `_ProductsOverviewScreenState` class , both should be in initial as false
+ 
+- add [`didChangeDependencies`](https://api.flutter.dev/flutter/widgets/AutomaticKeepAliveClientMixin/didChangeDependencies.html) function (Called when a dependency of this State object changes)
+It will be handling updates of screen when we will get the items from the server
+We will call `fetchAndSetItems` (function we have from `items` provider) to get the products from the server and when it will finish , we will update the state 
 
-- Lets refactor items_overview_screen :muscle:
+```dart
+var _isInit = false;
+var _isLoading = false;
 
-    until now it was just a widget that render loader,now we will make it show our items
+@override
+void didChangeDependencies() {
+   if (!_isInit) {
+   _isLoading = true;
+   Provider.of<Items>(context).fetchAndSetItems().then((_) {
+       setState(() {
+       _isLoading = false;
+       });
+   });
+   }
 
-- becasue we now going to work against the server - we will need to handle `Future` and async code , therefoe lets handle the `init` and `load` stage
-    
-    - create `_isInit` and `_isLoading` vars in `_ProductsOverviewScreenState` class , both should be in initial as false
-    - add `didChangeDependencies` (Called when a dependency of this State object changes)
-    
-        this will handle update of screen when we will get the data back from the server
-     
-    - we will call `fetchAndSetItems` there to get the products from the server and when it will finish , we will update the state 
+   _isInit = true;
+   super.didChangeDependencies();
+}
+```
+Lets refactor `body` in `Scaffold` widget :
+```dart
+body: _isLoading
+      ? Center(
+          child: CircularProgressIndicator(),
+        )
+      : ItemsGrid(),
+```
 
-    ```
-    var _isInit = false;
-    var _isLoading = false;
-
-    @override
-    void didChangeDependencies() {
-        if (!_isInit) {
-        _isLoading = true;
-        Provider.of<Items>(context).fetchAndSetItems().then((_) {
-            setState(() {
-            _isLoading = false;
-            });
-        });
-        }
-
-        _isInit = true;
-        super.didChangeDependencies();
-    }
-    ```
-
-    - now lets refactor `body` in `Scaffold` widget :
-    ```
-    body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : ItemsGrid(),
-    ```
-
-    - we get error beacuse `ItemsGrid` is not exist, we need to create it
+Now we are geting error - it beacuse `ItemsGrid` widget is not exist, we need to create it
 
 <details>
     <summary>items_overview_screen.dart</summary>
@@ -1377,6 +1463,14 @@ it will be `class` that uses `ChangeNotifier` mixin
     }
     }
 </details>
+
+### Items Grid widget   
+Lets create the `Items` and `Item` providers
+In `providers` folder we need to create `items.dart` and `item.dart`
+they will be `Providers` 
+
+#### what inside widget :
+
 
 - `ItemsGrid`
     - lets create a file `items_grid.dart` and `StatelessWidget` and call it `ItemsGrid` and import `material.dart`
