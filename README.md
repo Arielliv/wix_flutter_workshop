@@ -19,6 +19,7 @@
 By now ,you should be able to run `flutter doctor` on this project and succeed.
 
 You won't need the project you created , you will use this code base as start point
+
 More Info and examples for flutter: 
 A few resources to get you started if this is your first Flutter project:
 
